@@ -15,7 +15,6 @@ function [T_ice, rhofirn_ini,rho,snic_ini, snowc_ini, ...
 % temperature profiles as initial state of the subsurface column
 %==========================================================================
 
-
 %% ========== Initial density profile ==================================
 % Here we read the density profile from a core defined in a csv file in
 % Input folder, average it on the weq depth scale used by the model, and

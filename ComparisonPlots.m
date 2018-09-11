@@ -304,18 +304,6 @@ print(f, sprintf('%s/2_SEB_melt',OutputFolder), '-dpdf','-r0')
 
 %% Loading density data
    folders_main = folderlist;
-%    folders_plus40 = folders_main;
-%    folders_minus40 = folders_main;
-   
-   folders_plus40 = { './Output/Initial density +40/CP1_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10',...
-        './Output/Initial density +40/DYE-2_long_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10',...
-        './Output/Initial density +40/NASA-SE_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10',...
-       './Output/Initial density +40/Summit_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10_3'};
-   
-   folders_minus40= { './Output/Initial density -40_2/CP1_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10_2',...
-        './Output/Initial density -40_2/DYE-2_long_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10_3',...
-        './Output/Initial density -40_2/NASA-SE_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10_2',...
-        './Output/Initial density -40_2/Summit_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10_4'};
    
     depth_act = cell(3,4);
     rho_all = cell(3,4);
@@ -325,13 +313,7 @@ print(f, sprintf('%s/2_SEB_melt',OutputFolder), '-dpdf','-r0')
         disp(station{i})
         % loading the data from the main run
         [depth_act{1,i}, ~, rho_all{1,i}, time_mod{i}, rho_20{1,i}] = LoadRhoModel(folders_main{i});
-        disp('Standard run loaded')
-        
-%         [depth_act{2,i}, ~, rho_all{2,i}, ~, rho_20{2,i}] = LoadRhoModel(folders_plus40{i});
-%         disp('+40 run loaded')
-%         
-%         [depth_act{3,i}, ~, rho_all{3,i}, ~, rho_20{3,i}] = LoadRhoModel(folders_minus40{i});
-%         disp('-40 run loaded')     
+        disp('Standard run loaded')   
     end
     
 %% plotting density evolution
@@ -341,18 +323,12 @@ for i =1:length(folderlist)
 
         set(f,'CurrentAxes',ha(i))
         hold on 
-%         x2 = [time_mod{i}; flipud(time_mod{i})];
-%         inBetween = [rho_20{1,i}'+40; flipud(rho_20{1,i}'-40)];
-%         h = fill(x2, inBetween, 0.8*[1 1 1]);
-%         h.LineStyle = 'none';
+
         plot(time_mod{i}, rho_20{1,i},'k','LineWidth',3)
-%         plot(time_mod{i}, rho_20{2,i},'r','LineWidth',3)
-%         plot(time_mod{i}, rho_20{3,i},'b','LineWidth',3)
+
         
         if i ==1
-            legendflex( {'Standard run',...
-                'Initial density +40 kg/m3',...
-                'Initial density -40 kg/m3'}, 'ref', gcf, ...
+            legendflex( {'Standard run'}, 'ref', gcf, ...
                                    'anchor', {'n','n'}, ...
                                    'buffer',[0 0], ...
                                    'nrow',1, ...
