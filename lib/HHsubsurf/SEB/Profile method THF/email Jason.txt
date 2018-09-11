@@ -1,0 +1,58 @@
+See attached IDL code and theory doc
+
+the attached procedures follow this IDL code...
+
+; ---------------------------------- calculate derived products from raw data
+
+dz_21=z2-z1
+dz_32=z3-z2
+
+; ------------- specific humidity
+specific_humidity,RH_1,T_hmp_1,980.,e,q1
+specific_humidity,RH_2,T_hmp_2,980.,e,q2
+specific_humidity,RH_3,T_hmp_3,980.,e,q3
+
+; ------------- dq/dz
+valid=where(q2 ne 999 and q1 ne 999,c)
+dqdz_21=FLTARR(N_ELEMENTS(T_HMP_1)) & dqdz_21(*)=999.
+dqdz_21(valid)=(q2(valid)-q1(valid))/dz_21
+valid=where(q3 ne 999 and q2 ne 999,c)
+dqdz_32=FLTARR(N_ELEMENTS(T_HMP_1)) & dqdz_32(*)=999.
+dqdz_32(valid)=(q3(valid)-q2(valid))/dz_32
+
+; ------------- du/dz
+valid=where(u2 ne 999 and u1 ne 999,c)
+dudz_21=FLTARR(N_ELEMENTS(T_HMP_1)) & dudz_21(*)=999.
+dudz_21(valid)=(u2(valid)-u1(valid))/dz_21
+valid=where(u3 ne 999 and u2 ne 999,c)
+dudz_32=FLTARR(N_ELEMENTS(T_HMP_1)) & dudz_32(*)=999.
+dudz_32(valid)=(u3(valid)-u2(valid))/dz_32
+
+; ------------- dT/dz
+dT_21_FWTC=(FWTC_2-FWTC_1)/dz_21
+dT_32_FWTC=(FWTC_3-FWTC_2)/dz_32
+invalid=where(abs(dT_21_FWTC) gt 5,c) & if c gt 0 then dT_21_FWTC(invalid)=999.
+invalid=where(abs(dT_32_FWTC) gt 5,c) & if c gt 0 then dT_32_FWTC(invalid)=999.
+
+dT_21_HMP=(T_hmp_2-T_hmp_1)/dz_21
+dT_32_HMP=(T_hmp_3-T_hmp_2)/dz_32
+invalid=where(abs(dT_21_HMP) gt 5,c) & if c gt 0 then dT_21_HMP(invalid)=999.
+invalid=where(abs(dT_32_HMP) gt 5,c) & if c gt 0 then dT_32_HMP(invalid)=999.
+
+; ------------- sensible heat flux
+sensible_heat_flux,Ri_21_FWTC,ro_air,Cp,k,z1,z2,FWTC_1,FWTC_2,q1,q2,u1,u2,QH_21_FWTC,stab_21_FWTC
+sensible_heat_flux,Ri_21_HMP,ro_air,Cp,k,z1,z2,T_HMP_1,T_HMP_2,q1,q2,u1,u2,QH_21_HMP,stab_21_HMP
+
+sensible_heat_flux,Ri_32_FWTC,ro_air,Cp,k,z2,z3,FWTC_2,FWTC_3,q2,q3,u2,u3,QH_32_FWTC,stab_32_FWTC
+sensible_heat_flux,Ri_32_HMP,ro_air,Cp,k,z2,z3,T_HMP_2,T_HMP_3,q2,q3,u2,u3,QH_32_HMP,stab_32_HMP
+
+; ------------------------------------------- Latent Heat Flux
+
+latent_heat_flux,Ri_21_FWTC,ro_air,Cp,k,z1,z2,FWTC_1,FWTC_2,q1,q2,u1,u2,QE_21_FWTC,stab_21_FWTC
+latent_heat_flux,Ri_21_HMP,ro_air,Cp,k,z1,z2,T_HMP_1,T_HMP_2,q1,q2,u1,u2,QE_21_HMP,stab_21_HMP
+latent_heat_flux,Ri_32_FWTC,ro_air,Cp,k,z2,z3,FWTC_2,FWTC_3,q2,q3,u2,u3,QE_32_FWTC,stab_32_FWTC
+latent_heat_flux,Ri_32_HMP,ro_air,Cp,k,z2,z3,T_HMP_2,T_HMP_3,q2,q3,u2,u3,QE_32_HMP,stab_32_HMP
+
+invalid=where(abs(q1) gt 100,c) & if c gt 0 then q1(invalid)=999.
+invalid=where(abs(q2) gt 100,c) & if c gt 0 then q2(invalid)=999.
+invalid=where(abs(q3) gt 100,c) & if c gt 0 then q3(invalid)=999.
