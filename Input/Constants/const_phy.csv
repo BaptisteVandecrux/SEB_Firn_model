@@ -1,0 +1,45 @@
+alb_ice;0.45;albedo of ice -> if elev_bins = 1 then albedo will be determined from measurements;;
+alb_snow;0.8;albedo of snow -> if elev_bins = 1 then albedo will be determined from measurements;;
+es;0.622;;;
+es_0;6.1071;saturation vapour pressure at the melting point (hPa);;
+es_100;1013.246;saturation vapour pressure at steam point temperature (hPa);;
+em;0.98;longwave surface emissivity;;
+ext_air;1.50E-04;extinction coefficient of shortwave radiation in air for clear-sky conditions (m^-1);;
+ext_air_cl;1.50E-04;cloud-dependent add-on to extinction coefficient of shortwave radiation in air (m^-1);;
+ext_ice;1.00E+10;extinction coefficient of shortwave radiation in ice (m^-1) (no penetration if set to 1e10);;
+ext_snow;1.00E+10;extinction coefficient of shortwave radiation in snow (m^-1) (no penetration if set to 1e10);;
+g;9.82;gravitational constant (at sea level). 80 N -> 9.83, 60 N -> 9.82;;
+gamma;16;flux profile correction (Paulson & Dyer);;
+kappa;0.4;Von Karman constant (0.35-0.42);;
+L_sub;2.83E+06;latent heat of sublimation (J/kg);;
+L_fus;3.34E+05;latent heat of fusion/melting (J/kg);;
+L_vap;2.50E+06;latent heat of vaporization (J/kg);;
+R_d;287.05;gas constant of dry air;;
+R_v;461.51;gas constant of water vapour;;
+rho_ice;900;density of ice (kg/m3);;
+rho_snow;500;density of snow (kg/m3);;
+rho_water;999.8395;density of water at the melting point (kg/m3);;
+sigma;5.67E-08;Stefan-Boltzmann's constant;;
+T_solidprecip;0;Near-surface temperature below which precipitation is solid (C);;
+T_0;273.15;melting point temperature (K);;
+T_100;373.15;steam point temperature (K);;
+z0_ice;0.0032;surface roughness length for ice (m) as in Lefebvre et al. 2003;;
+z0_fresh_snow;0.00012;surface roughness length for snow (m) as in Lefebvre et al. 2003;;
+z0_old_snow;0.0013;surface roughness length for snow (m) as in Lefebvre et al. 2003;;
+aa;0.7;flux profile correction constants (Holtslag & De Bruin '88);;
+bb;0.75;;;
+cc;5;;;
+dd;0.35;;;
+beta;2317;;;
+c_pd;1005;specific heat of dry air (J/kg/K);;
+c_w;4210;specific heat of water at 0 C (J/kg/K) (Source www.engineeringtoolbox.com);;
+ch1;1.25;0.149;0.317;used in calculating roughness length for heat z_h over smooth surfaces (Andreas 1987)
+ch2;0;-0.55;-0.565;
+ch3;0;0;-0.183;
+cq1;1.61;0.351;0.396;used in calculating roughness length for moisture z_q over smooth surfaces (Andreas 1987)
+cq2;0;-0.628;-0.512;
+cq3;0;0;-0.18;
+R;8.314;;;
+kappa_poisson;0.2854;for dry air ratio of R;;
+
+

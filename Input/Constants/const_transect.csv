@@ -1,0 +1,17 @@
+Parameter;Value;Description
+ELA;1000;equilibrium line altitude to approximate initial snow layer thickness in accumulation zone (m)
+elev_bins;1;number of grid points along transect
+elev_binsize;100;vertical grid spacing (m)
+elev_start;0;lowest calculation level (m above sea level) -> if elev_bins = 1 then this will be set to elev_AWS
+gradT;-6.70E-03;along-slope vertical temperature gradient (C/m)
+gradT_Tdep;4.87E-05;temperature (in C) dependence of along-slope vertical temperature gradient (C/m/C)
+gradRH;1.75E-02;along-slope vertical relative humidity gradient (%/m)
+gradWS;3.15E-03;along-slope vertical wind speed gradient (m/s/m)
+gradLRin;-1.89E-02;along-slope vertical incoming longwave radiation gradient (W/m2/m)
+gradLRin_Tdep;-4.63E-04;temperature (in C) dependence of along-slope vertical incoming longwave radiation gradient (W/m2/m/C)
+gradsnowthick;0.1;along-slope vertical gradient in initial snow&firn layer thickness above ELA (m/m)
+gradTice;-0.001;along-slope vertical gradient in initial ice temperatures (C/m)
+H_T;2.6;initial height of temperature and humidity sensor over ice horizon (m)
+H_WS;3.1;initial height of anemometer over ice horizon (m)
+snowthick_ini;0;initial snow layer thickness below ELA (m)
+T_ice_AWS;-0.1;initial snow & ice temperature (C)

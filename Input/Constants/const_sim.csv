@@ -1,0 +1,23 @@
+dev;1;time step interpolation factor: 1,2,...,n (to keep sub-surface calculations stable)
+dTsurf_ini;10;initial surface temperature step in search for EB=0 (C)
+dz_ice;0.1;distance between vertical sub-surface levels (m)
+z_max;40;maximum depth for sub-surface levels (m)
+EB_max;0.1;surface temperature iteration will stop when the imbalance in the energy budget is less then EB_max (W/m2)
+iter_max_EB;60;max number of iterations in reaching EB=0
+iter_max_flux;20;max number of iterations in calculating flux profiles
+L_dif;0.01;limit of relative change in Obukhov length during flux iterations
+prec_cutoff;0;elevation below which there is half precipitation
+prec_rate;1.00E-03;artificial precipitation rate (m of water equivalent per hour)
+RH_min;20;lowest possible relative humidity over snow&ice after extrapolating over the DEM (%)
+WS_lim;1;wind speed below which turbulent fluxes are set to zero to prevent model instability (m/s)
+rho_snow_scheme;0;choice for fresh snow density scheme
+year;0;choice for year
+precip_scheme;1;choice for precipitation scheme
+fresh_snow_dens;315;
+verbose;1;
+solve_T_surf;1;
+perturb_rho_ini;0;
+track_density;0;
+avoid_runoff;0;
+THF_calc;1;
+
