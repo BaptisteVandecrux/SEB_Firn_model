@@ -14,7 +14,7 @@ If using specifically the Firn Model the following reference should be added:
 
 Langen, P., Fausto, R. S., Vandecrux, B., Mottram, R. H., & Box, J. E. (2017). Liquid Water Flow and Retention on the Greenland Ice Sheet in the Regional Climate Model HIRHAM5: Local and Large-Scale Impacts. Front. Earth Sci., 4(110). https://doi.org/10.3389/feart.2016.00110
 
-The repository contains all the scripts needed to run the model and produce the plots and data used in the Vandecrux et al. (****). However I do not own the input files (station data, firn cores...) and therefore cannot share them. If you need these input files, please contat me.
+The repository contains all the scripts needed to run the model and produce the plots and data used in the Vandecrux et al. (****). However I do not own the input files (station data, firn cores...) and therefore cannot put them online. If you need these input files, please contat me.
 
 The ouput of the model for Vandecrux et al. (****) are available here:
 
