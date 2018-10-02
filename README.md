@@ -1,7 +1,7 @@
 # SEB_Firn_model
 This repository contains the surface energy and mass balance as well as the firn model used for the study: 
 
-Vandecrux, B.; Fausto, R. S.; Langen, P. L.; As, D. Van; MacFerrin, M.; Colgan, W.T.; Ingeman-Nielsen, T.; Steffen, K.; Jensen, N.S.; Møller, M. T.; Box, J.E.. Drivers of Firn Densification on the Greenland Ice Sheet Revealed by Weather Station Observations and Modelling. Submitted to Journal of Geophysical Research.
+Vandecrux, B.; Fausto, R. S.; Langen, P. L.; As, D. Van; MacFerrin, M.; Colgan, W.T.; Ingeman-Nielsen, T.; Steffen, K.; Jensen, N.S.; Møller, M. T.; Box, J.E.. Drivers of Firn Densification on the Greenland Ice Sheet Revealed by Weather Station Observations and Modelling. Journal of Geophysical Research. 2018. https://doi.org/10.1029/2017JF004597
 
 It is available for free at https://github.com/BaptisteVandecrux/SEB_Firn_model
 When using any piece of script, cite the article above and give the link to the repository in the acknowledgment.
