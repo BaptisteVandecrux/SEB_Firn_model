@@ -396,10 +396,7 @@ for j=1:c.elev_bins
         'm' 'm_weq' 'm_weq' 'm_weq' 'm' 'm_weq' 'm_weq'...
         'm_weq' 'm_weq' '-' 'C' 'Wm-2', 'm', 'm', 'm_weq','mweq','K','%','ms-1'};
      for i=1:length(data)
-        try  WriteNetCDF(namefilesurf,data{i},varname{i},1, c.M, unit{i});
-        catch me
-        djf
-        end
+        WriteNetCDF(namefilesurf,data{i},varname{i},1, c.M, unit{i});
      end
       clear data varname unit
       
@@ -411,10 +408,7 @@ for j=1:c.elev_bins
     unit =  {'C' 'kg/m^3' 'mweq' 'mweq' 'mweq' 'mweq' 'mm' 'm'};
 
     for i = 1:length(data)
-        try WriteNetCDF(namefilesubsurf, data{i}, varname{i}, c.M, c.jpgrnd, unit{i})
-        catch me
-            fdrge;
-        end
+        WriteNetCDF(namefilesubsurf, data{i}, varname{i}, c.M, c.jpgrnd, unit{i})
     end
     clear data varname unit
     
@@ -426,10 +420,7 @@ for j=1:c.elev_bins
         unit =  {'kg/m^3'};
 
         for i = 1:length(data)
-            try WriteNetCDF(namefilesubsurf, data{i}, varname{i}, c.M, 6, unit{i})
-            catch me
-                fdrge;
-            end
+            WriteNetCDF(namefilesubsurf, data{i}, varname{i}, c.M, 6, unit{i})
         end
         clear data varname unit
     end
@@ -437,9 +428,12 @@ for j=1:c.elev_bins
 end  % END OF SPATIAL LOOP -----------------------------------------------------------------------
 save(strcat(c.OutputFolder,'/run_param.mat'),'c')
 
-M = [time SHF LHF sav.o_THF Re Ri err];
-dlmwrite(sprintf('THF_%s_%i.csv',c.station ,c.THF_calc),M,'Delimiter',',','precision',9);
-% disp ('Done...')
+% Output the latent and sensible heat fluxes along with the stability
+% metrics. Will be done in a smarter way in a future release.
+% M = [time SHF LHF sav.o_THF Re Ri err];
+% dlmwrite(sprintf('THF_%s_%i.csv',c.station ,c.THF_calc),M,'Delimiter',',','precision',9);
+
+disp ('Done...')
 toc
 
 end

@@ -1,3 +1,21 @@
+%% ================== GenerateOutputFiles ===============================
+% this script generates the outputfiles stored under:
+%
+% Baptiste Vandecrux. 2018. Surface energy balance and modeled firn 
+% density, Greenland ice sheet, 1998-2015. Arctic Data Center. 
+% https://doi.org/10.18739/A2TH8BM6X.
+% 
+% and produced for the study:
+%
+% Vandecrux, B., Fausto, R. S., Langen, P. L., van As, D., MacFerrin, M.,
+% Colgan, W. T., et al. (2018). Drivers of firn density on the Greenland 
+% ice sheet revealed by weather station observations and modeling. 
+% Journal of Geophysical Research: Earth Surface, 123, 2563–2576. 
+% https://doi.org/10.1029/2017JF004597
+%
+% Contact: b.vandecrux@gmail.com
+% ======================================================================
+%%
 clear all
 close all
 set(0,'defaultfigurepaperunits','centimeters');

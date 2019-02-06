@@ -300,31 +300,31 @@ clearvars out
              
         otherwise
             disp('Using thermistor data')
-        for i = 1:24*7 %we look at the week following the installation
-            if sum(~isnan(T_obs(i,:)))>1
-                if sum(~isnan(T_obs(1,:)))<3
-                    continue
+            for i = 1:24*7 %we look at the week following the installation
+                if sum(~isnan(T_obs(i,:)))>1
+                    if sum(~isnan(T_obs(1,:)))<3
+                        continue
+                    end
+                    if sum(~isnan(depth_thermistor(i,~isnan(T_obs(1,:)))'))<3
+                        continue
+                    end
+                    depth= depth_thermistor(i,~isnan(T_obs(1,:)))'; %in m
+                    depth = depth(depth~=0);
+                    [depth,ind_sorted] = sort(depth);
+                    out(:,1) = depth;
+                    oldtemp = T_obs(i,~isnan(T_obs(1,:)))';
+                    oldtemp = oldtemp(depth~=0);
+                    oldtemp = oldtemp(ind_sorted);
+                    out(:,2) = oldtemp;
+                    date_Tstring = datestr(time_dt(i));
+                    break
                 end
-                if sum(~isnan(depth_thermistor(i,~isnan(T_obs(1,:)))'))<3
-                    continue
-                end
-                depth= depth_thermistor(i,~isnan(T_obs(1,:)))'; %in m
-                depth = depth(depth~=0);
-                [depth,ind_sorted] = sort(depth);
-                out(:,1) = depth;
-                oldtemp = T_obs(i,~isnan(T_obs(1,:)))';
-                oldtemp = oldtemp(depth~=0);
-                oldtemp = oldtemp(ind_sorted);
-                out(:,2) = oldtemp;
-                date_Tstring = datestr(time_dt(i));
-                break
             end
-        end
         filename = [];
         
         if isempty(oldtemp)
-            disp('no thermistor data availble')
-            filename = './Input/Initial state/temperature/InitialTemperatureProfile.csv';
+            warning('No thermistor data available for the desired starting date. Using initial temperature of DYE-2 in 1998 instead.')
+            filename = './Input/Initial state/temperature/RetMIP_temperature_Dye-2.csv';
         end
         
     end

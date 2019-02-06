@@ -19,8 +19,8 @@ addpath(genpath('Input'),genpath('Output'))
 % param.cdel = 3.^([1:32]'-29)+0.15;
 
 % High resolution grid (comment if not needed)
-NumLayer = 200;
-param.z_max = 40;
+NumLayer = 100;
+param.z_max = 20;
 param.dz_ice = param.z_max/NumLayer;
 param.verbose = 1;
 param.lim_new_lay = 0.04;
@@ -78,8 +78,8 @@ param.avoid_runoff = 1;
 param.THF_calc = 1;
 
 station_list = {'DYE-2_long','CP1', 'Summit','NASA-SE'};
-% 
-% 
+
+
 for i =1:length(station_list)
 param.station =  station_list{i}; %'NASA-SE';
 
@@ -88,16 +88,11 @@ switch param.station
         param.InputAWSFile = 'data_CP1_1998-2010.txt';
     case 'DYE-2'
         param.InputAWSFile = 'data_DYE-2_1998-2015.txt';
-%         param.InputAWSFile = 'data_DYE-2_combined_hour.txt';
-%         param.InputAWSFile = 'data_DYE-2_combined_hour_cor.txt';
-%         param.InputAWSFile = 'data_DYE-2_restricted_hour.txt';
     case 'DYE-2_long'
         param.InputAWSFile = 'data_DYE-2_1998-2015.txt';
 
     case 'Summit'
-%         param.InputAWSFile = 'data_Summit_1990-2015.txt';
         param.InputAWSFile = 'data_Summit_2000-2015.txt';
-%         param.InputAWSFile = 'data_Summit_combined_hour.txt';
         
     case 'NASA-SE'
         param.InputAWSFile = 'data_NASA-SE_1998-2015.txt';
