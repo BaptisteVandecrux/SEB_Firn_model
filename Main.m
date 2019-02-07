@@ -61,7 +61,7 @@ param.ConductionModel = 0;      % if 1 does CONDUCTION ONLY
 % In the conduction model, the temperature profile is reseted every night
 % at 2am local time usingg thermistor string readings
 
-param.year    = 0;
+param.year    = [1998 1999];
 % by defining param.year, the model will be run only for that melt year
 % (i.e. 1st. april to 1st april) however you still need to make sure that 
 % "rows"  is set so that the appropriate values will be read in the weather 
@@ -77,7 +77,7 @@ param.track_density = 1;
 param.avoid_runoff = 1;
 param.THF_calc = 1;
 
-station_list = {'DYE-2_long','CP1', 'Summit','NASA-SE'};
+station_list = {'DYE-2_long'}; %,'CP1', 'Summit','NASA-SE'};
 
 
 for i =1:length(station_list)
