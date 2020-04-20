@@ -3,17 +3,15 @@ function [T_ice, rhofirn_ini,rho,snic_ini, snowc_ini, ...
     InitializationSubsurface(T_obs, depth_thermistor, T_ice, ...
     time, Tsurf_ini, j, c)
 
-% IniTemperatureDensity: Sets the initial state of the sub surface parameters:
+% InitializationSubsurface: Sets the initial state of the sub surface parameters:
 % - snow depth
 % - temperature profile
 % - density profile
 %
 %
-% Author: Dirk Van As (dva@geus.dk) & Robert S. Fausto (rsf@geus.dk)
-% translated to matlab by Baptiste Vandecrux (bava@byg.dtu.dk)
-% updated by Baptiste Vandecrux for integration of firn cores and
-% temperature profiles as initial state of the subsurface column
+% Author: Baptiste Vandecrux (bava@byg.dtu.dk)
 %==========================================================================
+
 
 %% ========== Initial density profile ==================================
 % Here we read the density profile from a core defined in a csv file in
@@ -23,37 +21,62 @@ function [T_ice, rhofirn_ini,rho,snic_ini, snowc_ini, ...
 %
 % See script "InitialDensityProfileGenerator.m" in lib for creation of the
 % csv file.
-switch c.station
-    case 'KAN-U'
-%         if c.year(1) == 2012
-            filename = './Input/Initial state/density/RetMIP_density_KAN-U 2012.csv';
-%         else
-%             filename = './Input/Initial state/density/DensityProfile_KAN-U_1989.csv';
-%         end
-   case 'Miege'
-        filename = './Input/Initial state/density/RetMIP_density_Firn Aquifer.csv';
-    case 'CP1'
-        filename = './Input/Initial state/density/DensityProfile_CP1_1998.csv';
-    case 'NUK_K'
-        filename = './Input/Initial state/density/DensityProfile_NUK_K.csv';
-    case 'Summit'
-%         filename = './Input/Initial state/density/DensityProfile_Summit_1990.csv';
-        filename = './Input/Initial state/density/RetMIP_density_Summit 1990.csv';
-    case 'NASA-SE'
-        filename = './Input/Initial state/density/DensityProfile_NASA-SE_1998.csv';
-    case 'NASA-E'
-        filename = './Input/Initial state/density/DensityProfile_NASA-SE_1998.csv';  
-    case 'NASA-U'
-        filename = './Input/Initial state/density/DensityProfile_NASA-SE_1998.csv';
-    case 'TUNU-N'
-        filename = './Input/Initial state/density/DensityProfile_NASA-SE_1998.csv';  
-    case {'DYE-2','DYE-2_long'}
-        filename = './Input/Initial state/density/RetMIP_density_Dye-2 1998.csv';
-    case 'DYE-2_HQ'
-        filename = './Input/Initial state/density/RetMIP_density_Dye-2 2016.csv';
-    otherwise
-        disp('Missing initial density profile for requested station.');
+if c.retmip == 0
+    switch c.station
+        case 'CP1'
+            filename = './Input/Initial state/density/DensityProfile_CP1_1998.csv';
+        case {'DYE-2','DYE-2_long'}
+            filename = './Input/Initial state/density/RetMIP_density_Dye-2 1998.csv';
+        case 'Summit'
+            filename = './Input/Initial state/density/DensityProfile_Summit_1998.csv';
+%             filename = './Input/Initial state/density/RetMIP_density_Summit 1990.csv';
+        case 'NASA-SE'
+            filename = './Input/Initial state/density/DensityProfile_NASA-SE_1998.csv';
+        case 'NASA-E'
+            filename = './Input/Initial state/density/DensityProfile_NASA-E_1998.csv';  
+        case 'NASA-U'
+            filename = './Input/Initial state/density/DensityProfile_NASA-U_1998.csv';
+        case 'SouthDome'
+            filename = './Input/Initial state/density/DensityProfile_SouthDome_1998.csv';
+        case 'Saddle'
+            filename = './Input/Initial state/density/DensityProfile_Saddle_1998.csv';
+        case 'TUNU-N'
+            filename = './Input/Initial state/density/DensityProfile_TUNU-N_1998.csv'; 
+        case 'NGRIP'
+            filename = './Input/Initial state/density/DensityProfile_NGRIP_1997.csv';  
+      case 'GITS'
+            filename = './Input/Initial state/density/DensityProfile_GITS_1963.csv';  
+        case 'DYE-2_HQ'
+            filename = './Input/Initial state/density/RetMIP_density_Dye-2 2016.csv';
+        case 'NUK_K'
+            filename = './Input/Initial state/density/DensityProfile_NUK_K.csv';
+        case 'KAN-U'
+    %         if c.year(1) == 2012
+                filename = './Input/Initial state/density/RetMIP_density_KAN-U 2012.csv';
+    %         else
+    %             filename = './Input/Initial state/density/DensityProfile_KAN-U_1989.csv';
+    %         end
+       case 'Miege'
+            filename = './Input/Initial state/density/RetMIP_density_Firn Aquifer.csv';
+        otherwise
+            error('Missing initial density profile for requested station.');
+    end
+else
+    switch c.station
+     case 'KAN-U'
+            filename = '.\RetMIP\Input files\density\RetMIP_density_KAN-U.csv';
+     case 'Dye-2_long'
+            filename = '.\RetMIP\Input files\density\RetMIP_density_Dye-2_long.csv';
+     case 'Dye-2_16'
+            filename = '.\RetMIP\Input files\density\RetMIP_density_Dye-2_16.csv';
+     case 'Summit'
+            filename = '.\RetMIP\Input files\density\RetMIP_density_Summit.csv';
+     case 'FA'
+            filename = '.\RetMIP\Input files\density\RetMIP_density_FA.csv';
+    end
 end
+disp('File used for firn density initialization:')
+disp(filename)
 
 delimiter = ';';
 startRow = 1;
@@ -68,6 +91,7 @@ catch me
         'EmptyValue' ,NaN,'HeaderLines' ,startRow-1, 'ReturnOnError', false);
 end
 fclose(fileID);
+
 out = [dataArray{1:end-1}];
 
 depth = out(:,1); %real depth scale
@@ -90,16 +114,16 @@ if c.perturb_rho_ini ~= 0
         / depth(ind_20);
     perturb_olddensity(perturb_olddensity>917)=917;
 
-    figure
-plot(olddensity,-depth)
-hold on
-plot(perturb_olddensity,-depth(1:ind_20))
-ylabel('Depth (m)')
-xlabel('Density (kg/m-3)')
-legend('Original','After perturbation')
-title(sprintf('Initial density perturbated\non average by %0.1f kg/m-3 \nin the upper 20 m.',perturb_olddensity_avg - olddensity_avg))
+    f = figure('Visible','on','OuterPosition',[0 0 8 18]);
+    plot(olddensity,-depth)
+    hold on
+    plot(perturb_olddensity,-depth(1:ind_20))
+    ylabel('Depth (m)')
+        xlabel('Density (kg m^{-3})','Interpreter','tex')
+    legend('Original','After perturbation')
+    title(sprintf('Initial density perturbated\non average by %0.1f kg/m-3 \nin the upper 20 m.',perturb_olddensity_avg - olddensity_avg))
 
-olddensity(1:ind_20) = perturb_olddensity;
+    olddensity(1:ind_20) = perturb_olddensity;
 end
 %the depthweq of each layer depend on the thickness_weq of all overlying
 %layers. It is therefore necessary to fill missing data. Missing density
@@ -176,18 +200,10 @@ ice_perc_mergedscale = interp1(oldscale_weq,oldstrat,mergedscale,'nearest');
     % density on the model depth scale
     for ii = 1:nbins
         ind_in_bin = (ind_bins == ii);
-%         if sum(firnvol_mergedscale_m(ind_in_bin)) ~= 0
-%             mean_firndensity(ii) = sum(firndensity_mergedscale(ind_in_bin) ...
-%                 .* firnvol_mergedscale_m(ind_in_bin)) ...
-%                 / sum(firnvol_mergedscale_m(ind_in_bin));
-%         else
-%              mean_firndensity(ii) = 500;
-%         end
+
     mean_firndensity(ii) = sum(density_mergedscale(ind_in_bin).*thick_mergedscale_m(ind_in_bin)) ...
         /sum(thick_mergedscale_m(ind_in_bin));
 
-%         snic_ini(ii) = min(sum(icemass_mergedscale_kg(ind_in_bin))./c.rho_water,c.cdel(ii));
-%         snowc_ini(ii) = c.cdel(ii)-snic_ini(ii);
         snowc_ini = c.cdel;
         snic_ini(ii) = 0;
         slwc_ini(ii) = 0;
@@ -222,52 +238,36 @@ else
         slwc_ini(length(mean_firndensity)+1:length(c.cdel),1) = 0;
     end
 end
-% figure
-% plot(depth_weq, rhofirn_ini)
 
 rho =  (c.cdel *c.rho_water)./...
     ((snowc_ini *c.rho_water)./rhofirn_ini + (snic_ini *c.rho_water)./c.rho_ice);
-
-%Overwrite density in the snow pack with a given value for snow density
-% -> here not needed because snow density should be given in initial
-% density profile
-
-% if snowthick(1,j) > 0
-%     rho(1:z_icehorizon,1) = c.rho_snow(1,j);
-%     %+ (c.rho_ice-c.rho_snow(j,0))*z*c.dz_ice/snowthick(j,0)   % including snow in the density array
-% end
 
 % Removing densities greater than ice densities (just in case)
 toodense = (rhofirn_ini > c.rho_ice);
 rhofirn_ini(toodense) = c.rho_ice;
 
-
 % calculates the new depth scale in real m
 depth_act = cumsum(c.cdel .*c.rho_water ./rhofirn_ini(:,1));
 
 if c.verbose == 1
-    f = figure('Visible','on');
-    ha = tight_subplot(1,4,0.05,[0.1 0.05],0.05);
-    axes(ha(1))
-    plot(depth,olddensity,'o')
+    f = figure('Visible','on','OuterPosition',[0 0 8 18]);
+stairs([0; depth(1:end-1)],olddensity,'LineWidth',2)
     hold on
-    stairs([0; depth_act(1:end-1)],rhofirn_ini, 'LineWidth',2)
-%     stairs([0; depth_act(1:end-1)],rho, 'LineWidth',2)
+    stairs([0; depth_act(1:end-1)],rhofirn_ini, 'LineWidth',1.5)
     plot([0, depth_weq(end-1)],[c.rho_ice, c.rho_ice],'k')
     axis tight
     box on
-    legend('Original data','after interpolation',...'bulk density',
+    legend('Observations','Model initial state',...'bulk density',
         'Location','NorthOutside')
     legend boxoff
     xlabel('Depth (m)')
-    ylabel('Density (kg/m^3)')
+    ylabel('Density (kg m^{-3})','Interpreter','tex')
     view([90 90])
+    title(c.station)
+        print(f,sprintf('%s/Initial_rho.tif',c.OutputFolder),'-dtiff')
+
 end
 
-% Here we add an initial surface temperature
-% depth_act = [0; depth_act];
-% depth_weq = [0; depth_weq];
-    
 %% ================= Initial temperature profile =========================
 % same as density, we give initial temperature to the subsurface according
 % to a csv file located in the Input folder
@@ -282,37 +282,40 @@ time_dt = datenum(time,1,1);
 clearvars out
 
     %reads initial subsurface conditions from file
+if c.retmip == 0
     switch c.station
         case 'DYE-2_HQ'
         filename = './Input/Initial state/temperature/RetMIP_temperature_Dye-2 HQ.csv';
         case {'DYE-2','DYE-2_long'}
         filename = './Input/Initial state/temperature/RetMIP_temperature_Dye-2.csv';
+        case {'Summit', 'NASA-E', 'NGRIP'}
+        filename = './Input/Initial state/temperature/RetMIP_temperature_Summit.csv';
+        case 'NASA-U'
+        filename = './Input/Initial state/temperature/RetMIP_temperature_NASA-U.csv';
+        case 'GITS'
+            filename = './Input/Initial state/temperature/GITS_temperature.csv';  
+        case 'NUK_K'
+        filename = './Input/Initial state/temperature/InitialTemperatureProfile_NUK_K.csv';
         case 'Miege'
         filename = './Input/Initial state/temperature/RetMIP_temperature_Firn Aquifer.csv';
         case 'KAN-U'
         filename = './Input/Initial state/temperature/RetMIP_temperature_KAN-U.csv';
-        case 'Summit'
-        filename = './Input/Initial state/temperature/RetMIP_temperature_Summit.csv';
-        case 'NUK_K'
-        filename = './Input/Initial state/temperature/InitialTemperatureProfile_NUK_K.csv';
-        case {'NASA-U'}
-        filename = './Input/Initial state/temperature/RetMIP_temperature_Dye-2.csv';
-             
+    
         otherwise
             disp('Using thermistor data')
             for i = 1:24*7 %we look at the week following the installation
                 if sum(~isnan(T_obs(i,:)))>1
-                    if sum(~isnan(T_obs(1,:)))<3
+                    if sum(~isnan(T_obs(i,:)))<3
                         continue
                     end
-                    if sum(~isnan(depth_thermistor(i,~isnan(T_obs(1,:)))'))<3
+                    if sum(~isnan(depth_thermistor(i,~isnan(T_obs(i,:)))'))<3
                         continue
                     end
-                    depth= depth_thermistor(i,~isnan(T_obs(1,:)))'; %in m
+                    depth= depth_thermistor(i,~isnan(T_obs(i,:)))'; %in m
                     depth = depth(depth~=0);
                     [depth,ind_sorted] = sort(depth);
                     out(:,1) = depth;
-                    oldtemp = T_obs(i,~isnan(T_obs(1,:)))';
+                    oldtemp = T_obs(i,~isnan(T_obs(i,:)))';
                     oldtemp = oldtemp(depth~=0);
                     oldtemp = oldtemp(ind_sorted);
                     out(:,2) = oldtemp;
@@ -320,15 +323,33 @@ clearvars out
                     break
                 end
             end
-        filename = [];
+            filename = [];
         
         if isempty(oldtemp)
-            warning('No thermistor data available for the desired starting date. Using initial temperature of DYE-2 in 1998 instead.')
-            filename = './Input/Initial state/temperature/RetMIP_temperature_Dye-2.csv';
+            disp('no thermistor data availble')
+            filename = './Input/Initial state/temperature/InitialTemperatureProfile.csv';
         end
         
     end
+
+else
+    switch c.station
+     case 'KAN-U'
+            filename = '.\RetMIP\Input files\temperature\RetMIP_temperature_KAN-U.csv';
+     case 'Dye-2_long'
+            filename = '.\RetMIP\Input files\temperature\RetMIP_temperature_Dye-2_long.csv';
+     case 'Dye-2_16'
+            filename = '.\RetMIP\Input files\temperature\RetMIP_temperature_Dye-2_16.csv';
+     case 'Summit'
+            filename = '.\RetMIP\Input files\temperature\RetMIP_temperature_Summit.csv';
+     case 'FA'
+            filename = '.\RetMIP\Input files\temperature\RetMIP_temperature_FA.csv';
+    end
+end
+
     if ~isempty(filename)
+        disp('File used for firn temperature initialization:')
+        disp(filename)
                 delimiter = ';';
         startRow = 2;
         formatSpec = '%f%f%[^\n\r]';
@@ -337,12 +358,13 @@ clearvars out
         dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter,...
             'EmptyValue' ,NaN,'HeaderLines' ,startRow-1, 'ReturnOnError', false);
         fclose(fileID);
+
         out = [dataArray{1:end-1}];
     end
 
-date_Tstring = 'manualy chosen profile';
+% date_Tstring = 'manualy chosen profile';
 depth = out(:,1); %old depth scale in m
-oldtemp = out(:,2); %density in kg/m^3 on the old real depth scale
+oldtemp = out(:,2); %temperature on the old real depth scale
 
 
 oldtemp(depth<0 ) =[];
@@ -357,7 +379,11 @@ depth(depth<0 ) =[];
         depth = [0; depth];
         oldtemp = [Tsurf_ini - c.T_0; oldtemp];
     end
-    
+    if depth_act(end)>depth(end)
+        depth = [depth; depth_act(end)];
+        oldtemp = [oldtemp; oldtemp(end)];
+    end
+        
     [newtemp] = ConvertToGivenDepthScale(depth, oldtemp, depth_act,'linear');
 
     newtemp(isnan(newtemp))=[];
@@ -389,20 +415,24 @@ depth(depth<0 ) =[];
     end
     
 if c.verbose == 1
-    axes(ha(2))
-    scatter(depth,oldtemp,'o')
+    f = figure('Visible','on','OuterPosition',[0 0 8 18]);
+    scatter(depth,oldtemp,'o','fill')
     hold on
     stairs(depth_act, T_ice(:,1,j)-c.T_0, 'LineWidth',2)
-    legend('Original data','after interpolation','Location','NorthOutside')
+    scatter(depth(end),oldtemp(end),'s','LineWidth',6)
+    legend('Observations','Model initial state',...
+        'Prescribed deep \newlinefirn temperature',...
+        'Interpreter','tex',    'Location','NorthOutside')
 
-    ylabel('Temperature (deg C)')
+    ylabel('Temperature (^oC)','Interpreter','tex')
     legend boxoff
     axis tight
     box on
-    view([90 90])
+    view([90 90])  
+    title(c.station)  
+    print(f,sprintf('%s/Initial_temp',c.OutputFolder),'-dpng')
+
 end
-
-
 %% ========== Initial grain size ===================================
 
 switch c.station
@@ -424,12 +454,12 @@ if sum(isnan(graind_out))>0
         error('NaN in initial temperature values')
 end
 if c.verbose == 1
-    axes(ha(3))
+    f = figure('Visible','on','OuterPosition',[0 0 8 18]);
     scatter(depth,old_graind,'o')
     hold on
     stairs([0; depth_act],[graind_out; graind_out(end)], 'LineWidth',2)
-    scatter([ depth_act],[graind_out], 'LineWidth',2)
-    legend('Original data','after interpolation','Location','NorthOutside')
+    scatter([depth_act],[graind_out], 'LineWidth',2)
+    legend('Original data','Model initial state','Location','NorthOutside')
 
     ylabel('Grain size (mm)')
     legend boxoff
@@ -437,6 +467,8 @@ if c.verbose == 1
     xlim([0 max(depth_act)])
     box on
     view([90 90])
+        print(f,sprintf('%s/Initial_graind',c.OutputFolder),'-dpng')
+
 end
 
 %% ========== Initial water content ================================
@@ -454,36 +486,42 @@ switch c.station
         fprintf('Intital total lwc of %0.2f mm\n\n', ...
             1000*sum(slwc_ini(ind_12:ind_37,:)));
         
-%         depth_new = [0.1:0.1:60]';
-%         lwc_new = ConvertToGivenDepthScale([depth_act; 70],[slwc_ini; 0],...
-%             depth_new,'extensive');
+    case 'FA'
+        filename = '.\RetMIP\Input files\lwc\RetMIP_lwc_FA.csv';
+        delimiter = ';';
+        startRow = 2;
+        formatSpec = '%f%f%[^\n\r]';
+        fileID = fopen(filename,'r');
+        dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'HeaderLines' ,startRow-1, 'ReturnOnError', false);
+        fclose(fileID);
+        M = [dataArray{1:end-1}];
+        clearvars filename delimiter startRow formatSpec fileID dataArray ans;
         
-%     M  = [depth_new, lwc_new*1000];
-%     M_table = array2table(M,'VariableName', {'depth_m', 'lwc_kg'});
-%     M0  = [depth_new, lwc_new*0];
-%     M0_table = array2table(M0,'VariableName', {'depth_m', 'lwc_kg'});
-% 
-%     writetable(M_table,'./Output/RetMIP/Initial density/RetMIP_lwc_FA.csv','Delimiter',';')
-%     writetable(M0_table,'./Output/RetMIP/Initial density/RetMIP_lwc_Dye-2_long.csv','Delimiter',';')
-%     writetable(M0_table,'./Output/RetMIP/Initial density/RetMIP_lwc_Dye-2_16.csv','Delimiter',';')
-%     writetable(M0_table,'./Output/RetMIP/Initial density/RetMIP_lwc_Summit.csv','Delimiter',';')
-%     writetable(M0_table,'./Output/RetMIP/Initial density/RetMIP_lwc_KAN_U.csv','Delimiter',';')   
+        depth = M(:,1);
+        old_lwc = M(:,2);        
+        [slwc_ini] = ConvertToGivenDepthScale(depth, old_lwc, depth_act,'intensive');
+    otherwise
+        slwc_ini = 0*depth_act;
+        old_lwc = 0*depth;
 end
 
 if c.verbose == 1
-    axes(ha(4))
+    f = figure('Visible','on','OuterPosition',[0 0 8 18]);
     stairs(depth_act,slwc_ini.*1000,'r', 'LineWidth',2)
+    if c.retmip == 1
+        hold on
+        scatter(depth,old_lwc.*1000, 'LineWidth',2)
+    end
+    
     hold on
-h(1) = plot( [NaN NaN],[NaN NaN],'w');
-h(2) = plot( [NaN NaN],[NaN NaN],'w');
-legend(h,'','','Location','NorthOutside')
+    legend('Original data','Model initial state','Location','NorthOutside')
     ylabel('Initial water content (mm)')
     legend boxoff
     axis tight
     box on
 %     title(sprintf('Initial grain size profile\n on %s',datestr(time_dt(1))))
     view([90 90])
-    print(f,sprintf('%s/InitialConditions.tif',c.OutputFolder),'-dtiff')
+    print(f,sprintf('%s/Initial_slwc.tif',c.OutputFolder),'-dtiff')
 end
 
 %% ========== add other initialization here ========================

@@ -21,7 +21,8 @@ endRow = 1;
 formatSpec = '%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s%[^\n\r]';
 
 fileID = fopen(filename,'r');
-dataArray = textscan(fileID, formatSpec, endRow, 'Delimiter', delimiter, 'ReturnOnError', false);
+dataArray = textscan(fileID, formatSpec, endRow, 'Delimiter', delimiter,...
+    'ReturnOnError', false);
 fclose(fileID);
 for i = 1:length(dataArray)
     temp = dataArray{i};

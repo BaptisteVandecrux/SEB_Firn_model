@@ -134,11 +134,11 @@ for i=1:2
         end
 end
 %         grey box for no data
-[~, ind_min] = min([max(Core{cn(1)}.Data.Depth),max(Core{cn(2)}.Data.Depth)]);
-depth=Core{cn(ind_min)}.Data.Depth/100;
-aux2=depth(~isnan(depth));
-rectangle('Position',[1 aux2(end) width_box*2 max((20-aux2(end)),0)],...
-    'FaceColor',[0.85 0.85 0.85],'EdgeColor','none')
+% [~, ind_min] = min([max(Core{cn(1)}.Data.Depth),max(Core{cn(2)}.Data.Depth)]);
+% depth=Core{cn(ind_min)}.Data.Depth/100;
+% aux2=depth(~isnan(depth));
+% rectangle('Position',[1 aux2(end) width_box*2 max((20-aux2(end)),0)],...
+%     'FaceColor',[0.85 0.85 0.85],'EdgeColor','none')
         
 set(gca,'ydir','rev','layer','top')
 if isempty(param.YLimit)
@@ -161,6 +161,8 @@ set(hleg,'interpreter','none')
 set(gca,'XMinorTick','on','YMinorTick','on')
 box on
 ylimit = get(gca,'YLim');
+ylim([0 min(length(Core{cn(1)}.Data.Density),...
+    length(Core{cn(2)}.Data.Density))]/100)
 
     %% Plotting density difference
     if strcmp(Core{cn(i)}.Info.Densities,'n')

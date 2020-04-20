@@ -1,6 +1,6 @@
-function [prhofirn, psnowc , psnic, pslwc, ptsoil , pdgrain, zrogl] =...
-    perc_runoff_new (prhofirn, psnowc , psnic, pslwc, ptsoil , ...
-        pdgrain, zrogl, c)
+function [prhofirn, psnowc , psnic, pslwc, pdgrain, zrogl] =...
+    perc_runoff_new (prhofirn, psnowc , psnic, pslwc, ...
+        pdgrain, c)
 
 % perc_runoff_new: Calculates meltwater percolation and runoff in the column
 % either according to a standard bucket scheme or to a Darcy-like bucket
@@ -58,6 +58,7 @@ end
 
 % Bottom layer: Receive from above. Give excess liquid to runoff.
 jk = c.jpgrnd;
+zrogl = 0;
     % Remove runoff from layer (and add to runoff-box zrogl)
     % Adjust bottom layer interface due to removal of mass
     % PLA Darcy 2016
@@ -97,7 +98,7 @@ for jk = c.jpgrnd-1:-1:1
                 liqmaxM = liqmaxloc*c.rho_water/c.rho_ice*(c.rho_ice/prhofirn(jk) - 1);
                 potret    = max( liqmaxM* psnowc(jk) , 0 );
                 liqexcess = pslwc(jk) - potret;
-                darcy_fluxes(jk) = max ( liqexcess , 0 );
+                darcy_fluxes(jk) = max(liqexcess , 0 );
             end
 
             % Calculate water in next layer, when this is at saturation (Theta = 1):

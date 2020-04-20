@@ -3,7 +3,7 @@ function [ psnowc, psnic, pslwc, ptsoil, zrfrz, prhofirn,...
     zsupimp, pdgrain, zrogl, psn, pgrndc, pgrndd, pgrndcapc, pgrndhflx,...
     dH_comp, snowbkt, compaction, c] ...
     = subsurface(pts, pgrndc, pgrndd, pslwc, psnic, psnowc, prhofirn, ...
-    ptsoil, pdgrain, zsn, zraind, zsnmel, zrogl, pTdeep,...
+    ptsoil, pdgrain, zsn, zraind, zsnmel, pTdeep,...
     snowbkt, c)
 
 % HIRHAM subsurface scheme - version 2016
@@ -32,41 +32,48 @@ function [ psnowc, psnic, pslwc, ptsoil, zrfrz, prhofirn,...
 % thickness_weq(n) = snowc(n)+snic(n)+slwc(n)
 % This thickness is allowed to vary within certain rules.
 
-   if sum(isnan(ptsoil))>1
-    fjf= 0;
-   end 
-   ptsoil_s = ptsoil;
 [ptsoil] = tsoil_diffusion (pts, pgrndc, pgrndd, ptsoil, c);
-   if sum(isnan(ptsoil))>1
-    fjf= 0;
-   end 
-[prhofirn, dH_comp, compaction] = densification (pslwc, psnowc , prhofirn, ptsoil, c);
-                % Update BV 2018
 
-                if c.track_density
-                    c.rho_avg_aft_comp = Calculate20mAvgDensity(psnowc, psnic, pslwc, snowbkt, prhofirn, c);
-                end
+
+% pore_space = psnowc .* c.rho_water.*( 1./prhofirn - 1/c.rho_ice);
+% excess_ice = max(0, psnic * c.rho_water / c.rho_ice - pore_space);
+% thickness_act = psnowc.*(c.rho_water./prhofirn) + excess_ice;
+% depth = cumsum(thickness_act);
+% % plot(T_firn_ini-273,-aux ,'-o')
+% % hold on
+% plot(ptsoil-273,-depth ,'-o')
+% ylim([-5 0])
+% xlim([-25 -15])
+% hold off
+% disp([pgrndc pgrndd])
+% pause(0.1)
+[prhofirn, dH_comp, compaction] = densification (pslwc, psnowc , prhofirn, ptsoil, c);
+        if c.track_density
+            [c.rhoCC20_aft_comp(1), c.rhoCC20_aft_comp(2)] = Calculate20mAvgDensity(psnowc, psnic, pslwc, snowbkt, prhofirn, ptsoil, c);
+        end
 
 [pdgrain] =  graingrowth ( pslwc, psnowc , pdgrain, c);
 
 [psnowc, psnic, pslwc, pdgrain, prhofirn, ptsoil, snowbkt]...
     = snowfall_new (zsn, psnowc, psnic, pslwc, pdgrain ...
     , prhofirn, ptsoil, pts,snowbkt, zraind, zsnmel,  c);
-                % Update BV 2018
-                if c.track_density
-                    c.rho_avg_aft_snow = Calculate20mAvgDensity(psnowc, psnic, pslwc, snowbkt, prhofirn, c);
-                end
+        % Update BV 2018: Density and temperature tracker
+        if c.track_density
+            [c.rhoCC20_aft_snow(1), c.rhoCC20_aft_snow(2)] = ...
+                Calculate20mAvgDensity(psnowc, psnic, pslwc, snowbkt, prhofirn, ptsoil, c);
+        end
+
 %BV 2017 updating cdel, cmid and rcdel
 c = update_column_properties(c,psnowc, psnic, pslwc);
 
 [psnowc, psnic, pslwc, pdgrain, prhofirn, ptsoil, snowbkt]...
     = sublimation_new (zsn, psnowc, psnic, pslwc, pdgrain ...
     , prhofirn, ptsoil, snowbkt, c);
-                % Update BV 2018
-                if c.track_density
-                    c.rho_avg_aft_subl = Calculate20mAvgDensity(psnowc, psnic, pslwc, snowbkt, prhofirn, c);
-                end
-                
+        % Update BV 2018: Density and temperature tracker
+        if c.track_density
+            [c.rhoCC20_aft_subl(1), c.rhoCC20_aft_subl(2)]= Calculate20mAvgDensity(psnowc, psnic, pslwc, snowbkt, prhofirn, ptsoil, c);
+        end
+        
 %BV 2017 updating cdel, cmid and rcdel
 c = update_column_properties(c,psnowc, psnic, pslwc);
 
@@ -81,11 +88,13 @@ c = update_column_properties(c,psnowc, psnic, pslwc);
 
 [psnowc, psnic, pslwc, snowbkt] = ...
         melting_new (psnowc, psnic, pslwc, zsnmel, snowbkt, ptsoil,prhofirn, c);
-                % Update BV 2018
-                if c.track_density
-                    c.rho_avg_aft_melt = Calculate20mAvgDensity(psnowc, psnic, pslwc, snowbkt, prhofirn, c);
-                end
-                
+
+        % Update BV 2018: Density and temperature tracker
+        if c.track_density
+             [c.rhoCC20_aft_melt(1), c.rhoCC20_aft_melt(2)]= ...
+                 Calculate20mAvgDensity(psnowc, psnic, pslwc, snowbkt, prhofirn, ptsoil, c);
+        end              
+
 %BV 2017 updating cdel, cmid and rcdel
 c = update_column_properties(c,psnowc, psnic, pslwc);
 
@@ -93,39 +102,45 @@ if c.hetero_percol
     [pslwc] = hetero_percol (prhofirn, psnowc , psnic, pslwc, pdgrain, c);
 end
 
-[prhofirn, psnowc , psnic, pslwc, ptsoil , pdgrain, zrogl] =...
-    perc_runoff_new (prhofirn, psnowc , psnic, pslwc, ptsoil , ...
-    pdgrain, zrogl, c);
-                % Update BV 2018
-                if c.track_density
-                    c.rho_avg_aft_runoff = Calculate20mAvgDensity(psnowc, psnic, pslwc, snowbkt, prhofirn, c);
-                end
+[prhofirn, psnowc , psnic, pslwc , pdgrain, zrogl] =...
+    perc_runoff_new (prhofirn, psnowc , psnic, pslwc , ...
+    pdgrain, c);
+
+        % Update BV 2018: Density and temp tracker
+        if c.track_density
+            [c.rhoCC20_aft_runoff(1), c.rhoCC20_aft_runoff(2)] = ...
+                Calculate20mAvgDensity(psnowc, psnic, pslwc, snowbkt, prhofirn, ptsoil, c);
+        end
+
 %BV 2017 updating cdel, cmid and rcdel
 c = update_column_properties(c,psnowc, psnic, pslwc);
 
-[ psnic, pslwc, ptsoil, zrfrz]...
+[psnic, pslwc, ptsoil, zrfrz]...
     = refreeze (psnowc, psnic, pslwc, ptsoil, c );
-
+        
 %BV 2017 updating cdel, cmid and rcdel
 c = update_column_properties(c,psnowc, psnic, pslwc);
 
 [ptsoil ,  psnic, pslwc, zsupimp]...
     =  superimposedice (prhofirn, ptsoil            ...
     , psnowc  , psnic, pslwc, zso_cond, c );
-                % Update BV 2018
-                if c.track_density
-                    c.rho_avg_aft_rfrz = Calculate20mAvgDensity(psnowc, psnic, pslwc, snowbkt, prhofirn, c);
-                end
+
+        % Update BV 2018: Density and temperature tracker
+        if c.track_density
+            [c.rhoCC20_aft_rfrz(1),c.rhoCC20_aft_rfrz(2)]  = Calculate20mAvgDensity(psnowc, psnic, pslwc, snowbkt, prhofirn, ptsoil, c);
+        end
+
 [prhofirn, psnowc , psnic, pslwc, ptsoil , pdgrain] =...
     merge_small_layers (prhofirn, psnowc , psnic, pslwc, ptsoil , ...
     pdgrain, c);
-                % Update BV 2018
-                if c.track_density
-                    rho_avg_test = Calculate20mAvgDensity(psnowc, psnic, pslwc, snowbkt, prhofirn, c);
-                    if abs(rho_avg_test - c.rho_avg_aft_rfrz) > 1
-                        error('merge_small_layer changing density')
-                    end
-                end
+
+        % Update BV 2018: Density and temperature tracker
+        if c.track_density
+            rho_avg_test = Calculate20mAvgDensity(psnowc, psnic, pslwc, snowbkt, prhofirn, ptsoil, c);
+            if abs(rho_avg_test - c.rhoCC20_aft_rfrz(1)) > 1
+                error('merge_small_layer changing density')
+            end
+        end
 
 %BV 2017 updating cdel, cmid and rcdel
 c = update_column_properties(c,psnowc, psnic, pslwc);

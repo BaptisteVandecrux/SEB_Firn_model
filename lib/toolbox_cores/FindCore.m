@@ -2,6 +2,15 @@ function index = FindCore(Core,type,coresearch)
 
 % function that looks for the index "index2 of a core "coresearch" in the
 % core dataset "Core"
+switch coresearch
+    case 'CP1'
+        coresearch='Crawford Point';
+    case 'KAN_U'
+        coresearch='KAN-U';
+    case 'DYE-2'
+        coresearch='Dye-2';
+end
+
 index=[];
     for i=1:length(Core)
         if isfield(Core{i}.Info,type)

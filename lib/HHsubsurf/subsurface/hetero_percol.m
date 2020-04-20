@@ -32,7 +32,16 @@ function [pslwc] = hetero_percol (prhofirn, psnowc , psnic, pslwc, pdgrain, c)
 %=========================================================================
 avail_water = zeros(size(prhofirn));
 
-for jk = 1:c.jpgrnd-1;
+% in the formulation of Marchenko et al. 2017, the liquid water is
+% distributed according to a probability funcion accross the layers before
+% the standard percolation scheme takes over. In theory the heterogeneous
+% flow could start from any layer at depth, routing water even deeper
+% That is why we commented:
+% for jk = 1:c.jpgrnd-1;
+% and work with all the water located in the 1st layer
+jk = 1;
+
+% calculating the amount of water that can be held by capillary forces
     if ( c.calc_CLliq )
          liqmaxloc = CLliqF(prhofirn(jk),c);
       else
@@ -41,6 +50,7 @@ for jk = 1:c.jpgrnd-1;
 
     liqmaxM = liqmaxloc*c.rho_water/c.rho_ice*(c.rho_ice/prhofirn(jk) - 1);
     potret    = max( liqmaxM* psnowc(jk) , 0 );
+% and what is in excess
     liqexcess = pslwc(jk) - potret;
     avail_water(jk) = max ( liqexcess , 0 );
     
@@ -49,7 +59,7 @@ for jk = 1:c.jpgrnd-1;
         % we draw from a binomial distribution of mode hetero_percol_p to
         % know whether this layer leads to heterogeneous percolation
         if binornd(1,c.hetero_percol_p)
-            fprintf('Piping occuring\n')
+%             fprintf('Piping occuring\n')
             percol_water = c.hetero_percol_frac * avail_water(jk);
             %note: dflux is positive when it leaves the layer
             
@@ -64,25 +74,50 @@ for jk = 1:c.jpgrnd-1;
             end
 
             depth_current = depth_act(jk);
-            depth_dest = c.hetero_percol_dist * rand(1,1) + depth_current;
+            depth_dest =  c.hetero_percol_dist; % * rand(1,1) + depth_current;
             % find index of layer at closest depth to the destination of
             % percolation
             [~, ind_dest] = min(abs(depth_act-depth_dest));
             
-            fprintf('from %0.2f m deep to %0.2f m\n',depth_current,depth_dest)
+            sav.depth_current = depth_current;
+            sav.depth_dest = depth_dest;
+%             fprintf('from %0.2f m deep to %0.2f m\n',depth_current,depth_dest)
 
+%% In the percolation scheme of Marchenko et al. (2017) the meltwater is 
+% redistributed from the surface down to a specified destination depth
+% according to a probability function
+
+% in an uniform distribution function, the subsurface layers receive water
+% proportional to their thickness:
+% figure
+% plot(pslwc,-depth_act)
+% hold on
+% pslwc(jk) = pslwc(jk) - avail_water(jk);
+% frac_received = thickness_act(jk:ind_dest)./sum(thickness_act(jk:ind_dest));
+% pslwc(jk:ind_dest) = pslwc(jk:ind_dest) + avail_water(jk)*frac_received;
+
+% plot(pslwc,-depth_act)
+% ylim([-10 0])
+% pause
+
+%% an alternative is to go through the stratigraphy and stop when there is a
+% gradient in grain size or an ice layer
             for ii = jk:ind_dest-1
                 %here we test all the layer through which the pipe travels
-                if ThetaF(pslwc(ii+1), psnowc(ii+1), prhofirn(ii+1), c) >= 1
-                    %if there is a saturated layer piping can't go through
-                    %it
-                    fprintf('sat - ')
-                    break
-                elseif psnic(ii+1)> c.ice_threshold
-                    % plus relative to frozen mass 
-                    %if there is too much ie in the next layer
+
+                if prhofirn(ii+1)> 800
                     fprintf('ice - ')
                     break
+%                 elseif psnic(ii+1)> c.ice_threshold
+%                     % plus relative to frozen mass 
+%                     %if there is too much ie in the next layer
+%                     fprintf('ice - ')
+%                     break
+%                 elseif ThetaF(pslwc(ii+1), psnowc(ii+1), prhofirn(ii+1), c) >= 1
+%                     %if there is a saturated layer piping can't go through
+%                     %it
+%                     fprintf('sat - ')
+%                     break
 % PERMEABILITY? h?
 %                 elseif pdgrain(ii)-pdgrain(ii+1) < c.crit_diff_grain
 %                     fprintf('grain - ')
@@ -90,7 +125,7 @@ for jk = 1:c.jpgrnd-1;
                 end
             end
             if ind_dest ~= ii
-                fprintf('Piping stopped at layer %i instead of \n',ii, ind_dest)
+                fprintf('Piping stopped at layer %i instead of %i\n',ii, ind_dest)
             end
             ind_dest = ii;
             
@@ -109,5 +144,5 @@ for jk = 1:c.jpgrnd-1;
             end
         end
     end
-end
+% end
 end

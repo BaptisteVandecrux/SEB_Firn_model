@@ -1,44 +1,13 @@
-function [QH] = ...
-    sensible_heat_flux (z1,z2,t1,t2,q1,q2,u1,u2,p,phi_m, Ri, ro_air,c)
+function [QH] = sensible_heat_flux (z_r,phi_m, Ri, ro_air,c)
 % function calculating the Sensible Heat Flux QH usingthe profile method
 % as developped by Jason Box.
 % translated from IDL by Baptiste Vandecrux
 % b.vandecrux@gmail.com
 % ------------------------------------------- 
-p0 = 1000; %standard pressure for the calculation of potential temperature
 
-% The virtual temperature is the temperature that dry dry air 
-% would have if its pressure and density were equal to those 
-% of a given sample of moist air (http://amsglossary.allenpress.com/glossary/)
-t_v1= t1*(1.+0.61*q1);
-t_v2= t2*(1.+0.61*q2);
-% The potential temperature  is the temperature that an unsaturated
-% parcel of dry air would have if brought adiabatically and 
-% reversibly from its initial state to a standard pressure, p0,
-% typically 1000 hPa
-% Here we calculate the virtual potential temperature (dry)
-theta_v1=t_v1*(p0/p)^c.kappa_poisson;
-theta_v2=t_v2*(p0/p)^c.kappa_poisson;
-
-dtheta = theta_v2-theta_v1;
-du = u2-u1;
-dz = z2-z1;
-
-% dudz=du/dz;
-
-
-% -------------------------- choose lower profile
-% z_r=sqrt(z1*z2);
-z_r = dz/log(z2/z1);
-
-if Ri>=-0.03
-    QH =  ro_air * c.c_pd * c.kappa^2 * z_r^2 * dtheta/dz * du/dz / phi_m^2;
-else
-%     phi_h needs to be tuned up for very unstable conditions according to Box and Steffen (2001)
-    QH =  ro_air * c.c_pd * c.kappa^2 * z_r^2 * dtheta/dz * du/dz / phi_m^2 * 1.3;
-end
-critical= Ri >= 0.2 && Ri < 999;
-QH(critical) = 0;
+% phi_h needs to be tuned up for very unstable conditions according to Box and Steffen (2001)
+phi_m(Ri<-0.03) = phi_m(Ri<-0.03)*1.3;
+QH =  ro_air .* c.c_pd .* c.kappa^2 .* z_r.^2 .* dtheta ./dz .* du./dz ./ phi_m.^2;
 end
 
 %% Original IDL script

@@ -113,10 +113,13 @@ function [time, year, day, hour, pres,...
     T_ice_obs = NaN(length(T1),num_therm);
     depth_thermistor = NaN(length(T1),num_therm);
 
-    for i = 1:length(ind)
-        T_ice_obs(:,i) = data_out.(data_out.Properties.VariableNames{ind(i)});
-        depth_thermistor(:,i) = data_out.(data_out.Properties.VariableNames{ind2(i)});
+    if ~isempty(ind2)
+        for i = 1:length(ind)
+            T_ice_obs(:,i) = data_out.(data_out.Properties.VariableNames{ind(i)});
+            depth_thermistor(:,i) = data_out.(data_out.Properties.VariableNames{ind2(i)});
+        end
     end
+        
 
     ind =  (LRout>316);
     if sum(ind)>0

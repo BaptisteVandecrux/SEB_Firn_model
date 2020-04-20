@@ -214,9 +214,6 @@ for i = 1:length(folderlist)
              end
          end
           clear data varname unit long_var_names
-            
-
-
 end
 
 

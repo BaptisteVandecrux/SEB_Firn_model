@@ -1,23 +1,9 @@
-function [QE] = latent_heat_flux(z1,z2,q1,q2,u1,u2, phi_m, Ri, ro_air, c)
+function [QE] = latent_heat_flux(z_r, phi_m, Ri, ro_air, c)
 % function calculating the Latent Heat Flux QE as developped by Jason Box
 % translated from IDL by Baptiste Vandecrux
 % b.vandecrux@gmail.com
 % ------------------------------------------- 
-
-    du = u2-u1;
-    dz = z2-z1;
-%     dudz = du/dz;
-    dq = (q2-q1);
-
-%     z_r = sqrt(z1*z2);
-    z_r = dz/log(z2/z1); 
-
-
-%     D_Theta_V = DVPT;
     QE = ro_air * c.L_vap * c.kappa^2 * z_r^2 * dq/dz * du/dz / phi_m.^2;
-
-    critical = Ri >= 0.2;
-    QE(critical)= 0;
 end
 
 %% Original IDL script

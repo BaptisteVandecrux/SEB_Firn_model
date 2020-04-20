@@ -66,7 +66,7 @@ function [psnic, psnowc, pslwc, pdgrain, prhofirn, ptsoil] = ...
         ptsoil(1:i_split-1) = ptsoil(2:i_split);
         % now layer i_split and i_split-1 are the same
         
-        thickness_new = min(c.max_split_lay, thickness_weq(i_split)/2);
+        thickness_new = min(c.max_lay_thick, thickness_weq(i_split)/2);
         thickness_left = thickness_weq(i_split) - thickness_new;
         r_new = thickness_new / thickness_weq(i_split);
         r_left = thickness_left / thickness_weq(i_split);

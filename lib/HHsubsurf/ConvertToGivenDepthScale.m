@@ -2,13 +2,6 @@ function [var_new] = ConvertToGivenDepthScale(depth_old, var_old, depth_new,opt)
 % Interpolates the depth profile of a given variable old_var 
 % (temperature grain size....) according to a given scale new_depth in real m
 
-%     % removing values in old_var that are beyond new_depth
-%     var_old(depth_old > depth_new(end)) = [];
-%     depth_old(depth_old > depth_new(end))=[];
-
-    % we limit the new scale to the values that are given within the oldscale
-%     new_depth_lim = depth_new(depth_new <= depth_old(end));
-    
     transpose_at_the_end = 0;
 
     if isrow(depth_old) ~= isrow(depth_new)
@@ -24,7 +17,7 @@ function [var_new] = ConvertToGivenDepthScale(depth_old, var_old, depth_new,opt)
     switch opt
         case 'linear'
         % the variable is interpolated on each stamp of the new scale
-        var_new = interp1(depth_old,var_old,depth_new);
+        var_new = interp1(depth_old,var_old,depth_new,'linear','extrap');
         
         case 'intensive'
             % intensive variables do not depend on the size of the system
@@ -40,7 +33,10 @@ function [var_new] = ConvertToGivenDepthScale(depth_old, var_old, depth_new,opt)
             % density_new = [100.0000  100.0000  100.0000  133.3333
             % 286.9565];
 
-
+            if depth_new(end)>depth_old(end)
+                depth_old = [depth_old, depth_new(end)];
+                var_old = [var_old, var_old(end)];
+            end
             left_neighbour_in_new = depth_new;
             left_neighbour_in_new(1) = 0;
             left_neighbour_in_new(2:end) = depth_new(1:end-1);
@@ -83,7 +79,14 @@ function [var_new] = ConvertToGivenDepthScale(depth_old, var_old, depth_new,opt)
             % cell into two equally sized cells then the lwc in the new
             % cells are half of the lwc of the original ones
             % example: depth_old = 1:4; lwc_old = [1 0 0 1];
-            %           depth_new = [0.1 0.2 0.6 1.2 3.5];              
+            %           depth_new = [0.1 0.2 0.6 1.2 3.5];  
+            
+            if depth_new(end)>depth_old(end)
+                thick_last_old = depth_old(end)-depth_old(end-1);
+                depth_old = [depth_old, depth_new(end)];
+                thick_last_old_new = depth_old(end)-depth_old(end-1);
+                var_old = [var_old, var_old(end)/thick_last_old*thick_last_old_new];
+            end
             
             depth_merged = sort([depth_old depth_new]);
                         
@@ -94,6 +97,7 @@ function [var_new] = ConvertToGivenDepthScale(depth_old, var_old, depth_new,opt)
             thick_old(2:end) = depth_old(2:end) - depth_old(1:end-1);
 
             ind_bin = discretize(depth_merged,[0 depth_old],'IncludedEdge','right');
+
             if sum(isnan(ind_bin))>1
                 error('Some depths asked in depth_new not covered by depth_old')
             end

@@ -12,7 +12,8 @@ function [rho,zieq,t]=densitymodel(Tavg,bdot,rhos,z,model)
 % z: depth in true_metres 
 %
 % model can be: {'HLJohnsen' 'HerronLangway' 'LiZwally' 'Helsen' 'NabarroHerring'}
-% default is herronlangway. (The other models are tuned for non-stationary modelling (Read Arthern et al.2010 before applying in steady state).
+% default is herronlangway. (The other models are tuned for non-stationary modelling
+% (Read Arthern et al.2010 before applying in steady state).
 % 
 %
 % OUTPUT: 

@@ -1,3 +1,10 @@
+% Script developped by B. Vandecrux (bav@geus.dk) for:
+% Vandecrux B, Fausto RS, Langen PL, van As D, MacFerrin M, Colgan WT, 
+% Ingeman-Nielsen T, Steffen K, Jensen NS, Møller MT and Box JE (2018) 
+% Drivers of Firn Density on the Greenland Ice Sheet Revealed by Weather 
+% Station Observations and Modeling. Journal of Geophysical Research: 
+% Earth Surface 123(10), 2563–2576. doi:10.1029/2017JF004597.
+
 clear all
 close all
 set(0,'defaultfigurepaperunits','centimeters');
@@ -14,8 +21,6 @@ addpath(genpath('lib'))
 addpath(genpath('Input'),genpath('Output'))
 
 OutputFolder = './Output/Standard runs';
-% OutputFolder = './Output/Modified densification';
-
  folderlist = { './Output/Standard runs/CP1_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10',...
          './Output/Standard runs/DYE-2_long_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10',...
          './Output/Standard runs/NASA-SE_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10',...
@@ -61,12 +66,7 @@ for i = 1:length(folderlist)
         rainHF,GF, meltflux,meltflux.*c.dt_obs./c.dev./c.L_fus./c.rho_water,...
         'VariableNames',{'time','SHF_Wm2','LHF_Wm2','SRnet_Wm2','LRnet_Wm2','RainHF_Wm2','GF_Wm2','MeltEnergy_Wm2',...
         'Melt_mweq'});
-%     figure
-%     for k = 2:8
-%     plot(SEB_hour.time,SEB_hour.(SEB_hour.Properties.VariableNames{k}))
-%     title(SEB_hour.Properties.VariableNames{k});
-%     pause
-%     end
+
         SEB_JJA = AvgTableJJA(SEB_hour,'sum');
         SEB_year = AvgTable(SEB_hour,'yearly','sum');
         SEB_year.time = datestr(SEB_year.time);
@@ -145,11 +145,6 @@ for i =1:length(folderlist)
     hold on
     plot(x([1 find(~isnan(y),1,'last')]),...
         nanmean(y)*[1 1 ],':k');
-%     plot(x(ind), ...
-%         lm.Coefficients.Estimate(2)*x(ind)+lm.Coefficients.Estimate(1),...
-%     'r','LineWidth',2)
-% [~,ci1] = predict(lm,x,...
-%     'Alpha',0.05,'Simultaneous',true);
 
 box on
 set(gca,'XTickLabelRotation',45,'TickLength',[0.02 0.07],'FontSize',FontSize)
@@ -157,14 +152,7 @@ axis tight
 xlim([x(1)-0.5 x(end)+0.5])
 ylim([0 950])
 set(gca,'XMinorTick','on','YMinorTick','on')
-% h_title = title(sprintf('%s',... \n(slope: %0.2f mm w.eq./dec. p-value: %0.2f)',...
-%     station{i}...
-%   ...  lm.Coefficients.Estimate(2)*10,...
-%   ...  max(lm.Coefficients.pValue)
-%   ));
-% h_title.Units = 'Normalized';
-% h_title.Position = h_title.Position - [0 0.35 0];
-% h_title.FontSize = 17;
+
 set (gca,'XTick',x,'XMinorTick','off')
 labels=get(gca,'XTickLabel');
 labels(1:2:end)={' '};
@@ -182,10 +170,6 @@ set(gca,'XTickLabel',labels);
         h_label.Position = h_label.Position + [0 0.5 0];
    end
    set(gca,'YAxisLocation','right')
-%    if i==4
-%        set(gca,'YAxisLocation','right')
-%        ylim([0 200])
-%    end
 end
 
 col = linspecer(6);
@@ -240,15 +224,11 @@ for i =1:length(folderlist)
     uistack(hhh,'bottom')
     end
 
-    %     disp(varname)
     average_pos = average;
     average_pos(average_pos<0) =0;
     
     average_neg = -average;
     average_neg(average_neg<0) =0;
-    
-%     disp(average_pos/sum(sum(average_pos))*100)
-%     disp(average_neg/sum(sum(average_neg))*100)
     
 set(gca,'XTickLabelRotation',45)
 
@@ -291,13 +271,7 @@ legendflex( {'Sensible heat flux','Latent heat flux','Net shortwave radiation',.
                        'box','off');
     uistack(hhh,'bottom')
 
-                   
-% orient('portrait')
-% set(gcf,'papersize',[29.7 25]);
-% set(0,'defaultfigurepaperposition',[.25 .25 [29.7 25]-0.5]);
-% set(gcf,'PaperPositionMode','auto');
-% set(0, 'DefaultFigureUnits', 'centimeters');
-% set(0, 'DefaultFigurePosition', [.25 .25 [29.7 25]-0.5]);
+              
 print(f, sprintf('%s/2_SEB_melt',OutputFolder), '-dtiff')
  orient('landscape')
 print(f, sprintf('%s/2_SEB_melt',OutputFolder), '-dpdf','-r0')
@@ -404,18 +378,7 @@ for i =1:length(folderlist)
         f = figure('Visible',vis,'Units','Normalized','outerposition',[0 0 0.9 0.8]);
         [ha, ~] = tight_subplot(1, num_plot, 0.025, [0.15 0.2], [0.09 0.01]);
         count = 0;
-%         switch station{i}
-%             case 'Crawford Point'
-%                 ylim_core = 10;
-%             case 'Dye-2'
-%                 ylim_core = 20;
-%             case 'Summit'
-%                 ylim_core = 17;
-%             case 'Summit'
-%                 ylim_core = 17;
-%             otherwise
                 ylim_core = 20;
-%         end
     
         for ii = core_list.i_core{i}
             count = count+1;
@@ -452,21 +415,9 @@ for i =1:length(folderlist)
     
     fill(x2, inBetween, 0.8*[1 1 0] + [0 0 1],'LineStyle','none');
             h(1) = plot(density,depth,'b','LineWidth',2);
-
-%     h_area.LineStyle = 'none';
-%             plot(density-23.1*2,depth,'b','LineWidth',1)
-%             plot(density+23.1*2,depth,'b','LineWidth',1)
             
             time_core = datenum(Core{ii}.Info.DateCored);
             [~, ind_time] = min(abs( time_mod{i} - time_core));
-
-%             depth_mod = depth_act{2,i}(:,ind_time);
-%             density_mod = rho_all{2,i}(:,ind_time);
-%             stairs(density_mod, depth_mod,'k', 'LineWidth',1)
-% 
-%             depth_mod = depth_act{3,i}(:,ind_time);
-%             density_mod = rho_all{3,i}(:,ind_time);
-%             stairs(density_mod, depth_mod,'k', 'LineWidth',1)
         
             depth_mod = depth_act{1,i}(:,ind_time);
             density_mod = rho_all{1,i}(:,ind_time);
@@ -973,8 +924,6 @@ ylimit = 20;
         end
     end    
 
-    % depth scale
-%     depth_act = vertcat(zeros(size(depth_act(1,:))), depth_act);
     depth_act = vertcat(zeros(size(depth_act(1,:))), depth_act);
 
     for i = 1:size(depth_act,1)
@@ -1067,8 +1016,6 @@ vis = 'on';
     c.OutputFolder = folderlist{ii};
     % extract surface variables
     namefile = sprintf('%s/surf-bin-%i.nc',folderlist{ii},1);
-    %             finfo = ncinfo(namefile);
-    %             names={finfo.Variables.Name};
     names = {'Year' 'Day' 'Hour' 'H_surf' 'SRout_mdl' 'LRout_mdl' 'SHF' 'LHF' ...
          'GF' 'rainHF' 'meltflux'   'runoff' 'snowfall' 'rainfall'...
           'sublimation' 'snowbkt'};
@@ -1086,17 +1033,7 @@ time_mod = datenum(Year,1,Day,Hour,0,0);
 
 
     runoffhour = -[runoff(1); runoff(2:end)-runoff(1:end-1)] ;
-    time = time_mod;
-
-%     disp(station{ii})
-%         disp('snowfall sublimation melt')
-% 
-%     fprintf('%0.2f    %0.2f     %0.2f\n', nanmean(SMB_year.snowfall)*1000,...
-%         nanmean(SMB_year.sublimation)*1000,...
-%         nanmean(SEB_year.Melt_mweq)*1000)
-%  end
-%  %%
-    
+    time = time_mod;    
     set(f,'CurrentAxes',ha(ii))
 
     disp('Plotting densification drivers')
@@ -1137,7 +1074,6 @@ time_mod = datenum(Year,1,Day,Hour,0,0);
     h_text.FontSize = 15;
     h_text.FontWeight = 'bold';
     h_text.Position(2) = 60;
-
  end
  
  xlabel('Year')
@@ -1430,11 +1366,6 @@ hold on
     disp(explained_variance)
     
     DV = datevec(densif_drivers_yearly.time);    
-%     disp('Cumulated density change year by year')
-%     disp('Year    Density change')
-%     format shortG
-%     disp([DV(:,1) densif_drivers_yearly.delta_rho_tot])
-
     stairs(DV(:,1), densif_drivers_yearly.delta_rho_tot,'LineWidth',2)
     
     disp('----------------------')
@@ -1463,15 +1394,6 @@ trend_annual.end_year(2) = 2014;
 
 trend_annual.start_year(3) = 2001;
 trend_annual.end_year(3) = 2014;
-
-% trend_annual.start_year(4)= 2001;
-% trend_annual.end_year(4) = 2014;
-% 
-% trend_annual.start_year(5) = 2001;
-% trend_annual.end_year(5) = 2010;
-% 
-% trend_annual.start_year(6) = 1985;
-% trend_annual.end_year(6) = 2014;
 
 for ii =1:length(station)
      load(strcat(folderlist{ii},'/run_param.mat'))

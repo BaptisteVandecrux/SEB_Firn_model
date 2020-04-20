@@ -10,7 +10,22 @@ function  [SRout_mdl, SRnet, T_ice, meltflux_internal, dH_melt_internal] = ...
 % Author: Dirk Van As (dva@geus.dk) & Robert S. Fausto (rsf@geus.dk)
 % translated to matlab by Baptiste Vandecrux (bava@byg.dtu.dk)
 %==========================================================================
+%extinction coefficient of ice 0.6 to 1.5 m-1
+%extinction coefficient of snow 4 to 40 m-1
+% Greufell and Maykut, 1977, Journal of Glaciology, Vol. 18, No. 80, 1977
 
+% %radiation absorption in snow
+% SRnet(snow_layer) = (SRin - SRout_mdl)...
+%     *exp(-ext_snow*depth(snow_layer));
+% 
+% %radiation absorption in ice layers underneath the snowpack
+%  SRnet(ice_layer) = (SRin-SRout).*...
+%         exp(-ext_snow*snowthick).*...
+%         exp(-ext_ice*(depth(ice_layer) - snowthick));
+
+% NOT USED AT THE MOMENT
+% should be updated for non regular layer thickness
+    
 if c.elev_bins ~= 1 && k > 1
     % in a transect, SRout is calculated using SRin (calculated from SRin_AWS)
     % and fixed values for albedo for snow and ice

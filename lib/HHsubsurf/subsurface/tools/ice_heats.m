@@ -17,7 +17,7 @@ function [zso_capa, zso_cond] = ice_heats (ptsoil, c)
 
 % Update BV2017
 % Volumetric heat capacity of ice. In J/m^3/K.
-zso_capa = zsn_capaF(c.rho_ice,ptsoil);
+zso_capa = zsn_capaF(c.rho_ice, ptsoil);
 
 % update BV2017
 % thermal conductivity of pure ice in W/m/K according to Yen 1981

@@ -200,7 +200,6 @@ if isfield(param,'cdel') %if cdel has been defined in param
 else
     c.z_ice_max     = c.z_max/c.dz_ice;   % number of sub-surface levels
     c.jpgrnd = c.z_ice_max+1;
-%         c.cdel = ones(c.jpgrnd,1)*c.dz_ice;
     thick_cumul =  (1:c.jpgrnd).^4/c.jpgrnd^4 *c.z_max;
     c.cdel = [thick_cumul(1) thick_cumul(2:end) - thick_cumul(1:end-1)]';
     tmp = max(0,c.lim_new_lay - c.cdel);

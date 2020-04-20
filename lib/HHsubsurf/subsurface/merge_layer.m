@@ -31,35 +31,37 @@ function [psnic, psnowc, pslwc, pdgrain, prhofirn, ptsoil] = ...
 %=========================================================================
 
 % CHANGE TO PERMEABILITY CRITERIA?
+    depth_weq = psnowc + psnic;
+    delta_depth = depth_weq(2:end)- depth_weq(1:end-1);
     % 1st criterion: Difference in temperature
-    diff = abs(ptsoil(1:end-1) - ptsoil(2:end));
+    diff = abs(ptsoil(1:end-1) - ptsoil(2:end))./delta_depth;
     diff(end+1) = diff(end);
-    crit_1 = interp1([0, c.merge_crit_temp], [1, 0], diff, 'linear', 0);
+    crit_1 = interp1([0, c.merge_crit_temp/0.1], [1, 0], diff, 'linear', 0);
 
     % 2nd criterion: Difference in firn density
-    diff = abs(prhofirn(1:end-1) - prhofirn(2:end));
+    diff = abs(prhofirn(1:end-1) - prhofirn(2:end))./delta_depth;
     diff(end+1) = diff(end);
-    crit_2 = interp1([0, c.merge_crit_dens], [1, 0], diff, 'linear', 0);
+    crit_2 = interp1([0, c.merge_crit_dens/0.1], [1, 0], diff, 'linear', 0);
     crit_2(and(psnowc(1:end-1)==0 , psnowc(2:end)==0)) = 0;
 
     % 3rd criterion: Difference in grain size
-    diff = abs(pdgrain(1:end-1) - pdgrain(2:end));
+    diff = abs(pdgrain(1:end-1) - pdgrain(2:end))./delta_depth;
     diff(end+1) = diff(end);
-    crit_3 = interp1([0, c.merge_crit_gsize], [1, 0], diff, 'linear', 0);
+    crit_3 = interp1([0, c.merge_crit_gsize/0.1], [1, 0], diff, 'linear', 0);
     crit_3(and(psnowc(1:end-1)==0 , psnowc(2:end)==0)) = 0;
 
     % 4th criterion: Difference in water content (rel. to layer size)
     % saturation instead?
     rel_lwc = pslwc./(pslwc+psnic+psnowc);
-    diff = abs(rel_lwc(1:end-1) - rel_lwc(2:end));
+    diff = abs(rel_lwc(1:end-1) - rel_lwc(2:end))./delta_depth;
 % 	diff(end+1) = diff(end);
-    crit_4 = interp1([0, c.merge_crit_rel_lwc], [1, 0], diff, 'linear', 0);
+    crit_4 = interp1([0, c.merge_crit_rel_lwc/0.1], [1, 0], diff, 'linear', 0);
     crit_4(and(pslwc(1:end-1)==0 , pslwc(2:end)==0)) = 0;
     crit_4(end+1) = crit_4(end);
 
     % 5th criterion: difference in ice content (rel. to layer size)
     rel_ic = psnic./(pslwc+psnic+psnowc);
-    diff = abs(rel_ic(1:end-1) - rel_ic(2:end));
+    diff = abs(rel_ic(1:end-1) - rel_ic(2:end))./delta_depth;
 % 	diff(end+1) = diff(end);
     crit_5 = interp1([0, c.merge_crit_rel_snic], [1, 0], diff, 'linear', 0);
     crit_5(and(psnic(1:end-1)==0 , psnic(2:end)==0)) = 0;
@@ -78,33 +80,55 @@ function [psnic, psnowc, pslwc, pdgrain, prhofirn, ptsoil] = ...
     crit_6(isdeep) = 1;
     
     if sum(isshallow+isdeep) < length(mid_point_weq)
-       isbetween = and(~isshallow,~isdeep);
+       isbetween = find(and(~isshallow,~isdeep));
         crit_6(isbetween) = interp1(...
             [c.deep_firn_lim, c.shallow_firn_lim],...
-            [0.9, 0.1], mid_point_weq(isbetween));
+            [1, 0], mid_point_weq(isbetween));
     end
     crit_6 = crit_6';
-    
-    % Update BV2017: We keep one third of the layers to describe the two
-    % deeper third of the column.
-    if depth_weq(floor(c.jpgrnd*2/3)-1) < max(depth_weq)/3
-        crit_6(floor(c.jpgrnd*2/3):end) = -1;
-    end
+
+    % Update BV2020: max layer thickness
+    crit_7=interp1([0 c.max_lay_thick],[1 -1],...
+        [thickness_weq(2:end); thickness_weq(end)]);
+    crit_7(isnan(crit_7))=0;
     
     % final rating:
     w1 = 1;
     w2 = 1;
     w3 = 1;
-    w4 = 2;
-    w5 = 2;
-    w6 = 1.5;
-    crit = (w1.*crit_1 + w2.*crit_2+ w3.*crit_3 + w4.*crit_4 + w5.*crit_5 + w6 .* crit_6)./(w1+w2+w3+w4+w5+w6);
-    
-    [~, i_merg] = max(crit);
+    w4 = 1;
+    w5 = 1;
+    w6 = 2;
+    w7 = 3;
+    crit = (w1.*crit_1 + w2.*crit_2+ w3.*crit_3 +...
+        w4.*crit_4 + w5.*crit_5 + w6 .* crit_6+ w7 .* crit_7)./(w1+w2+w3+w4+w5+w6+w7);
+    i_merg = find(crit == max(crit),1,'last');
     i_merg = min(c.jpgrnd-1, i_merg);
 
 % fprintf('Merging layer %i and %i.\n',i_merg, i_merg +1);
-
+% subplot(2,1,1)
+% hold off
+% plot(crit_1)
+% hold on
+% plot(crit_2)
+% plot(crit_3)
+% plot(crit_4)
+% plot(crit_5)
+% plot(crit_6)
+% plot(crit_7)
+% plot(crit,'LineWidth',2)
+% legend(num2str([1:8]'),'location','eastoutside')
+% plot(i_merg*[1 1], [-1 1],'LineWidth',2)
+% 
+% subplot(2,1,2)
+% hold off
+% stairs0(depth_weq,prhofirn,'LineWidth',2);
+% hold on
+% for i = 1:length(depth_weq)
+% stairs0(depth_weq(i)*[1 1],[0 800]);
+% end
+% 
+% pause(0.1)
     % layer of index i_merg and i_merg+1 are merged
     if (psnowc(i_merg+1) + psnowc(i_merg))> c.smallno
         if psnowc(i_merg+1)<c.smallno

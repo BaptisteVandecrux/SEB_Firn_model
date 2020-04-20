@@ -19,8 +19,15 @@ else
     disp(nu)
     disp(range)
 end
-    
+
  % smooth surfaces: Andreas 1987
-z_h = max(1e-10, z_0 * exp(c.ch1(range) + c.ch2(range)*log(Re) + c.ch3(range)*(log(Re))^2));  
-z_q = max(1e-10, z_0 * exp(c.cq1(range) + c.cq2(range)*log(Re) + c.cq3(range)*(log(Re))^2));
+z_h =  z_0 * exp(c.ch1(range) + c.ch2(range)*log(Re) + c.ch3(range)*(log(Re))^2);  
+z_q = z_0 * exp(c.cq1(range) + c.cq2(range)*log(Re) + c.cq3(range)*(log(Re))^2);
+
+    if z_h < 1e-6
+         z_h = 1e-6;
+    end
+    if z_q < 1e-6
+         z_q = 1e-6;
+    end
 end
