@@ -105,30 +105,6 @@ function [psnic, psnowc, pslwc, pdgrain, prhofirn, ptsoil] = ...
     i_merg = find(crit == max(crit),1,'last');
     i_merg = min(c.jpgrnd-1, i_merg);
 
-% fprintf('Merging layer %i and %i.\n',i_merg, i_merg +1);
-% subplot(2,1,1)
-% hold off
-% plot(crit_1)
-% hold on
-% plot(crit_2)
-% plot(crit_3)
-% plot(crit_4)
-% plot(crit_5)
-% plot(crit_6)
-% plot(crit_7)
-% plot(crit,'LineWidth',2)
-% legend(num2str([1:8]'),'location','eastoutside')
-% plot(i_merg*[1 1], [-1 1],'LineWidth',2)
-% 
-% subplot(2,1,2)
-% hold off
-% stairs0(depth_weq,prhofirn,'LineWidth',2);
-% hold on
-% for i = 1:length(depth_weq)
-% stairs0(depth_weq(i)*[1 1],[0 800]);
-% end
-% 
-% pause(0.1)
     % layer of index i_merg and i_merg+1 are merged
     if (psnowc(i_merg+1) + psnowc(i_merg))> c.smallno
         if psnowc(i_merg+1)<c.smallno
