@@ -14,9 +14,9 @@ addpath(genpath('Input'),genpath('Output'))
 % possible to overwrite the default value by defining them again in the
 % "param{kk}" struct hereunder.
 
-station_list =   {'GITS'};
+station_list =   {'KAN_M'};
 % station_list = PROMICE_dir; %
-RCM_list = {'CanESM_rcp85'};
+RCM_list = {'RACMO'};
 
 param = cell(size(RCM_list));
 for kk = 1:length(RCM_list)
