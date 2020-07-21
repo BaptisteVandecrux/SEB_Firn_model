@@ -39,6 +39,8 @@ if WS > c.WS_lim
     L = 10e4;
 
     if theta >= Tsurf && WS >= c.WS_lim   % stable stratification
+        % correction from Holtslag, A. A. M. and De Bruin, H. A. R.: 1988, ‘Applied Modelling of the Night-Time
+% Surface Energy Balance over Land’, J. Appl. Meteorol. 27, 689–704.
         for i=1:c.iter_max_flux
             psi_m1 = -(c.aa*z_0/L  +  c.bb*(z_0/L-c.cc/c.dd)*exp(-c.dd*z_0/L)  + c.bb*c.cc/c.dd);
             psi_m2 = -(c.aa*z_WS/L + c.bb*(z_WS/L-c.cc/c.dd)*exp(-c.dd*z_WS/L) + c.bb*c.cc/c.dd);
@@ -88,6 +90,10 @@ if WS > c.WS_lim
     end
 
     if theta < Tsurf && WS >= c.WS_lim   % unstable stratification
+        % correction functions as in 
+        % Dyer, A. J.: 1974, ‘A Review of Flux-Profile Relationships’, Boundary-Layer Meteorol. 7, 363– 372.
+        % Paulson, C. A.: 1970, ‘The Mathematical Representation of Wind Speed and Temperature Profiles in the Unstable Atmospheric Surface Layer’, J. Appl. Meteorol. 9, 857–861.
+
         for i=1:c.iter_max_flux
             x1      = (1 - c.gamma * z_0  / L)^0.25;
             x2      = (1 - c.gamma * z_WS / L)^0.25;

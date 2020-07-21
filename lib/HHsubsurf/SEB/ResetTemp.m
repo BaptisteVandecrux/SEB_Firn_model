@@ -83,5 +83,27 @@ subsurfmelt = find(T_ice_reset(:) > c.T_0);
 if sum(subsurfmelt )>0
     T_ice_reset(subsurfmelt) = c.T_0;
 end
+%% Comes from outside the function just after it
+%                     figure
+                    depth_act = cumsum(c.cdel .*c.rho_water ./rho(:,k));
+                    depth_act = [0; depth_act];
+
+%                     scatter(depth_thermistor(k,depth_thermistor(k,:)~=0),...
+%                         T_ice_obs(k,depth_thermistor(k,:) ~= 0), 'o')
+%                     hold on
+%                     stairs(depth_act(1:end-1),T_ice(:,k,j)-c.T_0)
+                    
+                T_ice(~isnan(T_reset),k,j) = T_reset(~isnan(T_reset));
+%                     stairs(depth_act(1:end-1),T_ice(:,k,j)-c.T_0)
+%                     legend('data','before reset','after reset','Location','South')
+%                     xlabel('Depth (m)')
+%                     ylabel('Temperature (deg C)')
+%                     title(sprintf('%s',datestr(datenum(time(k),0,0))))
+%                     view([90 90])
+   
+                    [zso_capa, zso_cond] = ice_heats (c);
+                    [grndc, grndd, ~, ~]...
+                        = update_tempdiff_params (rho(:,k), Tdeep(j)                    ...
+                        , snowc, snic, T_ice(:,k,j), zso_cond, zso_capa, c);
 
 end

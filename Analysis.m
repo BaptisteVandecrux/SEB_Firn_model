@@ -28,12 +28,28 @@ vis = 'off';        % make the plot visible or not (only plotted in files)
 % Read surface variables
     OutputFolder = uigetdir('./Output');
 %     OutputFolder = '.\Output\GITS_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10';
+
+%     folderlist = { ...
+%         ...'CP1_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10',...
+%         'DYE-2_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10',...
+%        	'Summit_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10',...
+%         'NASA-SE_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10'};
+% for i=1:length(folderlist)
+%     OutputFolder = sprintf('./Output/%s',folderlist{i})
+%     close all
+    
+
     
     % extract run parameters
     load(strcat(OutputFolder,'/run_param.mat'))
     c.OutputFolder = OutputFolder;
     % extract surface variables
-    namefile = sprintf('%s/surf-bin-%i.nc',OutputFolder,1);
+    switch c.station
+        case 'DYE-2'
+            namefile = sprintf('%s/%s_surf-bin-1.nc',OutputFolder,c.station);
+        otherwise
+            namefile = sprintf('%s/surf-bin-%i.nc',OutputFolder,1);
+    end
     finfo = ncinfo(namefile);
     names={finfo.Variables.Name};
     for i= 1:size(finfo.Variables,2)
@@ -43,8 +59,16 @@ vis = 'off';        % make the plot visible or not (only plotted in files)
     % extract subsurface variables
     varname= {'compaction' 'dgrain' 'rfrz' 'rho' 'slwc' 'snowc' 'snic' 'T_ice'};
     for i =1:length(varname)
-        namefile = sprintf('%s/%s_bin_%i.nc',OutputFolder,varname{i},1);
-        eval(sprintf('%s = ncread(''%s'',''%s'');', varname{i}, namefile,varname{i}));
+        switch c.station
+            case 'DYE-2'
+                namefile = sprintf('%s/%s_%s_bin_1.nc',...
+                    OutputFolder,c.station,varname{i});
+        end
+        try eval(sprintf('%s = ncread(''%s'',''%s'');', varname{i}, namefile,varname{i}));
+        catch me
+            namefile = sprintf('%s/%s_bin_%i.nc',OutputFolder,varname{i},1);
+            eval(sprintf('%s = ncread(''%s'',''%s'');', varname{i}, namefile,varname{i}));
+        end
     end
     fprintf('\nData extracted from nc files.\n');
 

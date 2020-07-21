@@ -204,7 +204,7 @@ if sum(isnan(Tsurf_obs))<length(Tsurf_obs)
     % print(f, sprintf('%s/Tsurf',OutputFolder), '-dtiff')
     
     temp = datevec(time_mod);
-    month_obs = temp.Month;
+    month_obs = temp(:,2);
     months = ['Jan'; 'Feb'; 'Mar'; 'Apr'; 'May'; 'Jun'; 'Jul'; 'Aug'; ...
         'Sep'; 'Oct'; 'Nov'; 'Dec'];
     
@@ -762,15 +762,15 @@ end
 disp('Plotting surface height for the melting seasons')
 DV = datevec(time_mod);
 years_list = unique (DV(:,1));
-if strcmp(c.station,'DYE-2')
-    years_list = [1998 2006 2010:2012 2016];
-    f = figure('Visible',vis);
-    ha = tight_subplot(2,3,0.025, [0.18 0.04], 0.07);
-else
-    f = figure('Visible',vis);
-    ha = tight_subplot(min(3,length(years_list)), ...
-        floor(length(years_list)/3)+1,0.016, [0.18 0.04], 0.07);
-end
+
+f = figure('Visible',vis,'Position',[0 0 30 length(years_list)/20*70]);
+set(f, 'PaperPosition', [0 0 30 length(years_list)/20*70])    % can be bigger than screen 
+set(f, 'PaperSize', [30 length(years_list)/20*70])    % Same, but for PDF output
+m_1= [0.02 0.15];
+m_2= [0.03 0.1];
+m_3= 0.1;
+ha = tight_subplot(round(length(years_list)/2), ...
+    2,m_1, m_2 , m_3);
 
 for i= 1: length(years_list)
     
@@ -787,67 +787,47 @@ for i= 1: length(years_list)
     end
     set(f,'CurrentAxes',ha(i))
     hold on
-    %     h1 = plot(time_mod(i1:i2),smooth(meltflux(i1:i2), 30*24)/60,...
-    %         'Color',[160,160,160]/255,'LineWidth',1);
-    h1 = plot(time_daily,melt_daily/5000-1,...
-        'Color',[96,96,96]/255,'LineWidth',1.5);
-    
-    h2 = plot(time_mod(i1:i2),H_surf_comp(i1:i2)-H_surf_comp(i1),'LineWidth',1.5);
-    h3 = plot(time_mod(i1:i2),Surface_Height(i1:i2)-Surface_Height(i1),...
-        'LineWidth',1.5);
-    axis tight
+    [axout,h1,h3]=plotyy(time_mod(i1:i2),H_surf_comp(i1:i2)-H_surf_comp(i1),...
+        time_daily,melt_daily)
+    ind = i1:i2;
+    h2 = plot( time_mod(i1:i2),Surface_Height(ind)-Surface_Height(...
+        ind(find(~isnan(Surface_Height(ind)),1,'first'))),...
+    'LineWidth',1.5);
+
+    set_monthly_tick(time_mod(i1:i2))
+    h3.Color = [96,96,96]/255;
+    h3.LineWidth = 1.5;
+    h1.LineWidth = 1.5;
+    h1.Color = 'b';
+    h2.LineWidth = 1.5;
+    h2.Color = 'r';
+    axout(1).YAxis.Color = 'k';
+    axout(2).YAxis.Color = [96,96,96]/255;
+    axout(1).YLabel.String='Surface height (m)';
+    axout(2).YLabel.String='Daily melt (mm w.e.)';
+    axout(2).XAxis.Visible = 'off';
+   axout(1).XLim =   time_mod([i1 i2]);
+   axout(2).XLim =   time_mod([i1 i2]);
     box on
-    ylim([-1.2 0.4])
-    xlim(time_mod([i1 i2]))
+    axout(1).YLim = [nanmin([Surface_Height(i1:i2)-Surface_Height(i1);...
+        H_surf_comp(i1:i2)-H_surf_comp(i1)]),...
+        nanmax([Surface_Height(i1:i2)-Surface_Height(i1);...
+        H_surf_comp(i1:i2)-H_surf_comp(i1)])];
+    axout(2).YLim = [0 nanmax(melt_daily)*1.1];
     
-    % Create textbox
-    text(time_mod(i1)+5, -0.5, ...
-        num2str(years_list(i)),...
-        'FontWeight','bold','FontSize',12);
+    title(years_list(i));
     
-    set(gca,'XTick',datenum(datenum(years_list(i),5:9,1)),...
+    set(axout(1),'XTick',datenum(datenum(years_list(i),5:9,1)),...
         'XMinorTick','on','YMinorTick','on')
-    if ~strcmp(c.station,'DYE-2')
-        
-        if ~ismember(i,1:4:20)
-            set(gca,'YTickLabel','')
-        end
-        if ~ismember(i,17:20)
-            set(gca,'XTickLabel','')
-        else
-            datetick('x','mmm-dd','keepticks','keeplimits')
-            set(gca,'XTickLabelRotation',45)
-        end
-        
-        if i == 9
-            ylabel('Surface height (m)')
-        elseif i == 18
-            xlabel('                                          Date')
-        end
-    else
-        
-        if ~ismember(i,[1 4])
-            set(gca,'YTickLabel','')
-        end
-        if ~ismember(i,4:6)
-            set(gca,'XTickLabel','')
-        else
-            datetick('x','mmm-dd','keepticks','keeplimits')
-            set(gca,'XTickLabelRotation',45)
-        end
-        
-        if i == 1 || i==4
-            ylabel('Surface height (m)')
-        elseif i == 4
-            xlabel('          Date')
-        end
-        
-    end
+    datetick('x','keepticks','keeplimits')
 end
 
-legendflex([h2 h3 h1],{'mod. height',...
-    'obs. height','mod. melt (different scale)'},...
-    'ncol',3);
+legendflex([h1 h2 h3],{'modelled height',...
+    'observed height','modelled melt'},...
+    'ncol',1,...
+    'ref',gcf,...
+    'box','off',...
+'anchor',{'n' 'n'});
 
 print(f, sprintf('%s/validation_SR',OutputFolder), '-dtiff')
 if strcmp(vis,'off')
@@ -2240,6 +2220,42 @@ if strcmp(vis,'off')
     close(f);
 end
 
+
+%%  Comp with RACMO
+file_RACMO = 'C:\Users\bav\OneDrive - Geological survey of Denmark and Greenland\Code\AWS_Processing\Input\Secondary data\RACMO_3h_AWS_sites.nc';
+finfo = ncinfo(file_RACMO);
+melt_RACMO = ncread(file_RACMO,'melt');
+time_RACMO = ncread(file_RACMO,'time')+datenum(1900,1,1);
+melt_RACMO = melt_RACMO(:,31);
+melt_RACMO(time_RACMO<SEB_hour.time(1))=[];
+time_RACMO(time_RACMO<SEB_hour.time(1))=[];
+RACMO = table();
+RACMO.time = time_RACMO;
+RACMO.melt = melt_RACMO;
+RACMO_yr = AvgTable(RACMO,'yearly','sum');
+RACMO_yr = AvgTable(RACMO,'yearly','sum');
+
+figure
+stairs(RACMO_yr.time,RACMO_yr.melt*3,'LineWidth',1.5)
+hold on
+stairs(datenum(SEB_year.time),SEB_year.Melt_mweq*1000,'LineWidth',1.5)
+set_monthly_tick(SEB_hour.time)
+ylabel('Hourly melt ( mm w.e)')
+axis tight
+legend('RACMO2.3p2','Vandecrux et al. 2020','Location','northoutside')
+
+figure
+scatter(RACMO_yr.melt*3,SEB_year.Melt_mweq*1000,'fill')
+hold on
+plot([0 900],[0 900],'k')
+box on
+grid on
+xlabel('RACMO2.3p2')
+ylabel('Vandecrux et al., 2020')
+title('Simulated annual melt at Dye-2 (mm w.e.)')
+axis tight
+
+
 %% ================ SEB 2 =========================
 f = figure('Visible', vis);
 Y = horzcat(accumarray(index, GF*3600),  accumarray(index, SHF*3600),...
@@ -2622,6 +2638,8 @@ if time_mod(end)-time_mod(1) >365
         close(f);
     end
 end
+
+
 
 %% ==================== validation of accumulation =======================
 if time_mod(end)-time_mod(1) >365

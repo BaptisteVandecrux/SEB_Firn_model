@@ -10,14 +10,29 @@ prec_cutoff;0;elevation below which there is half precipitation
 prec_rate;1.00E-03;artificial precipitation rate (m of water equivalent per hour)
 RH_min;20;lowest possible relative humidity over snow&ice after extrapolating over the DEM (%)
 WS_lim;1;wind speed below which turbulent fluxes are set to zero to prevent model instability (m/s)
-rho_snow_scheme;0;choice for fresh snow density scheme
-year;0;choice for year
-precip_scheme;1;choice for precipitation scheme
-fresh_snow_dens;315;
+rho_snow_scheme;0;choice of fresh snow density scheme
+;; 0 = constant = 315; % Greenland-wide mean according to Fausto et al 201
+;; 1 = dependant on mean temperature (Reeh et al. 2005)
+;; 2 = dependant on mean temperature (Kuipers-Munneke et al. 2015)
+;; 3 = dependant on elevation latitude and longitude (RSF unpub)
+;; 4  dependant on hourly temperature and wind speed (Liston et al., 2007)
+year;0;choice of year
+precip_scheme;3;choice of precipitation scheme: 
+;; 1 = when LRin_AWS >= c.sigma*T_AWS.^4, constant rate c.precip_rate (Dirk, unpub.)
+;; 2 = when RH > 80%, with intensity scaled by (RH-80)/20, baseline rate c.precip_rate for 100% humidity (Liston and Sturm 1998)
+;; 3 = Using surface height measurements (smoothed over 1 week) to quantify the snowfall
+precip_rate ;0.001;
+fresh_snow_dens;315; 
 verbose;1;
-solve_T_surf;1;
-perturb_rho_ini;0;
-track_density;0;
-avoid_runoff;0;
-THF_calc;1;
+solve_T_surf;1; if zero then observed surface temperature (from LRout) is used instead
+perturb_rho_ini;0;allows to perturbate the initial density profile this shift will be applied on the upper 20 m of cores.
+track_density;0; make the model save average top 20 m density at each time step along with the contributions from different processes
+avoid_runoff;0; if 1 runoff is not allowed
+THF_calc;1; choice of THF calculation
+;; 1 = bulk
+;; 2 = profile if possible
+;; 3 = calculate both and save both results
+track_temp;0; saves the firn temperature accross the different steps in the subsurface scheme
+retmip;0; if one then uses the retmip forcing files
+OutputRoot;'./Output';
 

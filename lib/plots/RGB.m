@@ -54,9 +54,12 @@ function RGB= RGB(index_or_name)
 
 colors= {
 1    0    0    'red';
+194/255 78/255 67/255 'rouge';
+194/200 78/200 67/200 'rouge clair';
 1    0.6  0    'orange';
 0.25 0.25 0.9  {'blue','cobalt blue'};
 0    1    0    {'green','light green'};
+63/255 182/255 83/255    {'vert'};
 0.2    0    0    'dark red';
 1    0.5    0.5    'light red';
 1    0.8    0.8    'light light red';
@@ -76,6 +79,7 @@ colors= {
 0.5    1    0.5    {'light light green'};
 1    0.5  0.5  'peach';
 1    1    0    'yellow';
+223/255 199/255 79/255    'jaune';
 0    0    0.8  {'dark blue','navy blue'};
 0.1    0.1    0.3  {'dark dark blue'};
 0.8  0.8  0.8  {'gray','light gray'};

@@ -29,25 +29,21 @@ calc_CLliq;1;uses Coleou and Lesaffre to calculate the irreduscible water conten
   dgrainNew ;0.1; Grain diameter of newfallen snow (in mm);
   ;;;
   delta_time ;3600; Model time step (s);
-  delta_time_flux ;21600; Flux average time step (s);
-  delta_time_total;86400; Integration time;
-;;  nstep    ; delta_time_total / delta_time
-;;  nstepflx ; delta_time_flux  / delta_time
 ;;;
 eps ;0.1; Tuning parameters;
 missing_value ;-999; Missing value;
 smallno ;1.00E-12; Small number for layer calculations   ;
-shallow_firn_lim;5;;
-deep_firn_lim;15;;
+shallow_firn_lim;8;;
+deep_firn_lim;20;;
 thick_crit;5;;
 new_bottom_lay;10;;
-max_split_lay;10;;
+max_lay_thick;10;;
 min_tot_thick;20;;
-merge_crit_temp;3;;
-merge_crit_dens;50;;
+merge_crit_temp;1;;
+merge_crit_dens;10;;
 merge_crit_gsize;1;;
-merge_crit_rel_lwc;0.2;;
-merge_crit_rel_snic;0.2;;
+merge_crit_rel_lwc;0.1;;
+merge_crit_rel_snic;0.1;;
 new_lay_frac;5;number by which average accumulation is divided to give the new layer thickness;
 lim_max_column;70;;
 hetero_percol;0;choice for heterogeneous percolation parametrization;

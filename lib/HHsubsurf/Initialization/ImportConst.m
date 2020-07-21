@@ -57,7 +57,7 @@ c.accum_AWS = StationInfo.meanaccumulationm_weq(i_station);
 filename = 'const_sim.csv';
 delimiter = ';';
 startRow = 1;
-formatSpec = '%s%f%s%[^\n\r]';
+formatSpec = '%s%s%s%[^\n\r]';
 fileID = fopen(filename,'r');
 dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'HeaderLines' ,startRow-1, 'ReturnOnError', false);
 fclose(fileID);
@@ -69,7 +69,7 @@ for i=1:length(Parameter)
     if isempty(Parameter{i})
         continue
     end
-    eval(sprintf('c.%s=%f;',Parameter{i},Value(i)));
+    eval(sprintf('c.%s=%s;',Parameter{i},Value{i}));
 end
 clear Parameter Value
 

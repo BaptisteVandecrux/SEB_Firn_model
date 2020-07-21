@@ -13,5 +13,7 @@ function cmap = BWR_cmap(num_color)
         cmap(num_color-i+1,:) = end_color ...
             +([1, 1, 1] - end_color) * (i-1)/floor(num_color/2);
     end
+        cmap(i,:) = [1 1 1];
+        cmap(num_color-i+1,:) = [1 1 1];
     cmap(end,:) = [0.8 0 0];
 end

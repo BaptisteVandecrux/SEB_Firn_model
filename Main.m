@@ -1,111 +1,146 @@
 % Main script for running the surface - subsurface model
 % Here you can define which year you want to compute, define your
-% parameters, plot output variables, evaluate model performance....
+% param{kk}eters, plot output variables, evaluate model performance....
 %
 % Author: Baptiste Vandecrux (bava@byg.dtu.dk)
 % ========================================================================
 clearvars
 close all
 clc
-addpath(genpath('lib'))
+addpath(genpath('.\lib'))
 addpath(genpath('Input'),genpath('Output'))
 
-% All parameters are defined in a csv files in Input folder, however it is
+% All param{kk}eters are defined in a csv files in Input folder, however it is
 % possible to overwrite the default value by defining them again in the
-% "param" struct hereunder.
+% "param{kk}" struct hereunder.
 
-% Increasing resolution towards the sufrace
-% param.cdel = zeros(32,1);
-% param.cdel = 3.^([1:32]'-29)+0.15;
+station_list =   {'GITS'};
+% station_list = PROMICE_dir; %
+RCM_list = {'CanESM_rcp85'};
 
-% High resolution grid (comment if not needed)
-NumLayer = 100;
-param.z_max = 20;
-param.dz_ice = param.z_max/NumLayer;
-param.verbose = 1;
-param.lim_new_lay = 0.04;
+param = cell(size(RCM_list));
+for kk = 1:length(RCM_list)
+    
+    % %%%%%%%%%%%%%%%%%%%%%
+    % High resolution grid (comment if not needed)
+    NumLayer = 100;
+    param{kk}.z_max = 50;
+    param{kk}.dz_ice = param{kk}.z_max/NumLayer;
+    param{kk}.verbose = 1;
+    param{kk}.lim_new_lay = param{kk}.z_max/NumLayer/10;
 
-% Heterogeneous precolation (comment if not needed)
-% param.hetero_percol = 0;
-% param.hetero_percol_p = 0.01;
-% param.hetero_percol_frac = 0.5;
+    % param{kk}.ConductionModel = 0;      % if 1 does CONDUCTION ONLY
+    % In the conduction model, the temperature profile is reseted every night
+    % at 2am local time usingg thermistor string readings
 
-param.snowthick_ini= 0.1* 350 / 1000; %Initial snow thickness in m weq
+    % Heterogeneous precolation from Marchenko et al. (2017)
+    % this considers only redistribution of the water from the first layer into
+    % the rest of the subsurface
+    % An alternative is to go through the whole column and check whether piping
+    % can occur at any depth
+    param{kk}.hetero_percol = 0; % 1 = whole scheme on; 0 = standard percolation
+    param{kk}.hetero_percol_p = 1; % binomial probability for a piping event to be initiated
+                                % In Marchenko et al. (2017) this happens at
+                                % every time step (probability 1)
+    param{kk}.hetero_percol_frac = 1; % fraction of the available water that can be
+                                % In Marchenko et al. (2017) all the available
+                                % water goes into redistribution (frac = 1)
+    param{kk}.hetero_percol_dist = 5; % characteristic distance until which
+                                % preferential percolation operates
+                                % When using uniform probability distribution 
+                                % for the redistribution Marchenko et al. (2017)
+                                % recommends between 4.5 and 6 m as cut-off value
 
-param.calc_CLliq = 1; % uses Coleou and Lesaffre to calculate irreduscible water content
+    % result of a tuning of densification schemes
+    %    param{kk}.a_dens = 30.25;
+    %    param{kk}.b_dens = 0.7;
 
-param.do_no_darcy = 0; % = 0 for using the new darcy-like bucket scheme
-param.whwice = 0.1;  % ratio between ice layer horizontal span and horizontal spacing from other ice layers
-param.Ck  =  1; % refreezing speed : fraction of the potential 
-               % refrozen mass actually refrozen per time step
-% param.liqmax          =      0.2;
+    param{kk}.year    =  0;
+    % by defining param{kk}.year, the model will be run only for that melt year
+    % (i.e. 1st. april to 1st april) however you still need to make sure that 
+    % "rows"  is set so that the appropriate values will be read in the weather 
+    % data. To run the model only from 1 to rows, just leave param{kk}.year=0.
 
-param.rho_snow_scheme = 0;
-% choice for fresh snow density see function IniRhoSnow
-% 0 -> constant = 315; % Greenland-wide mean according to Fausto et al 201
-% 1 -> dependant on mean temperature (Reeh et al. 2005)
-% 2 -> dependant on mean temperature (Kuipers-Munneke et al. 2015)
-% 3 -> dependant on elevation latitude and longitude (RSF unpub)
-% 4 -> dependant on hourly temperature and wind speed (Liston et al., 2007)
+    param{kk}.track_density = 0;
+    param{kk}.avoid_runoff = 0; 
+    param{kk}.retmip = 0;
 
-param.precip_scheme = 3;
-% choice for precipitation scheme see function Precipitation
-% 1 -> when LRin_AWS >= c.sigma*T_AWS.^4, constant rate c.precip_rate (Dirk, unpub.)
-param.prec_rate       =      0.001;
-% 2 -> when RH > 80%, with intensity scaled by (RH-80)/20, baseline rate
-% c.precip_rate for 100% humidity (Liston and Sturm 1998)
-% 3 -> Using surface height measurements (smoothed over 1 week) to quantify
-% the snowfall
-
-param.ConductionModel = 0;      % if 1 does CONDUCTION ONLY
-% In the conduction model, the temperature profile is reseted every night
-% at 2am local time usingg thermistor string readings
-
-param.year    = [1998 1999];
-% by defining param.year, the model will be run only for that melt year
-% (i.e. 1st. april to 1st april) however you still need to make sure that 
-% "rows"  is set so that the appropriate values will be read in the weather 
-% data. To run the model only from 1 to rows, just leave param.year=0.
-
-% param.perturb_rho_ini = -40; % this option allows to perturbate the initial 
-                            % density profile this shift will be applied on
-                            % the upper 20 m of cores.
-
-%    param.a_dens = 30.25;
-%    param.b_dens = 0.7;
-param.track_density = 1;
-param.avoid_runoff = 1;
-param.THF_calc = 1;
-
-station_list = {'DYE-2_long'}; %,'CP1', 'Summit','NASA-SE'};
-
-
-for i =1:length(station_list)
-param.station =  station_list{i}; %'NASA-SE';
-
-switch param.station
-    case 'CP1'
-        param.InputAWSFile = 'data_CP1_1998-2010.txt';
-    case 'DYE-2'
-        param.InputAWSFile = 'data_DYE-2_1998-2015.txt';
-    case 'DYE-2_long'
-        param.InputAWSFile = 'data_DYE-2_1998-2015.txt';
-
-    case 'Summit'
-        param.InputAWSFile = 'data_Summit_2000-2015.txt';
+    % PROMICE_dir = dir('../AWS_Processing/Output/PROMICE/');
+    % PROMICE_dir = {PROMICE_dir.name};
+    % PROMICE_dir(1:2) = [];
+    % for i = 1:length(PROMICE_dir)
+    %     PROMICE_dir{i} = PROMICE_dir{i}(1:(end-6));
+    % end
+    param{kk}.vis = 'off';
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%5
+    model_version = RCM_list{kk};
         
-    case 'NASA-SE'
-        param.InputAWSFile = 'data_NASA-SE_1998-2015.txt';
-      otherwise
-        disp('Missing data file for the requested station.');
-end
+for i =1:length(station_list)
+    param{kk}.station =  station_list{i}; 
+%     param{kk}.InputAWSFile = sprintf(['U:\\Storage Baptiste\\Code\\FirnModel_bv_v1.3\\Input' ...
+%         '\\Weather data\\Temperature tracking\\data_%s_combined_hour.txt'],param{kk}.station);
+
+    switch param{kk}.station
+        case 'CP1'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/CP1/data_CP1_combined_hour.txt';
+        case 'DYE-2'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/DYE-2/data_DYE-2_combined_hour.txt';
+        case {'DYE-2_long' 'Dye-2_long'}
+            param{kk}.InputAWSFile = 'data_DYE-2_1998-2015.txt';
+        case {'DYE-2_HQ' 'Dye-2_16'}
+            param{kk}.InputAWSFile = 'data_DYE-2_Samira_hour.txt';
+
+        case 'Summit'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/Summit/data_Summit_combined_hour.txt';
+        case 'NASA-SE'
+    %         param{kk}.InputAWSFile = 'data_NASA-SE_1998-2015.txt';
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/NASA-SE/data_NASA-SE_combined_hour.txt';
+        case 'NASA-E'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/NASA-E/data_NASA-E_combined_hour.txt';
+        case 'NASA-U'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/NASA-U/data_NASA-U_combined_hour.txt';
+        case 'SouthDome'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/SouthDome/data_SouthDome_combined_hour.txt';
+        case 'TUNU-N'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/TUNU-N/data_TUNU-N_combined_hour.txt'; 
+      case 'Saddle'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/Saddle/data_Saddle_combined_hour.txt'; 
+      case 'NGRIP'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/NGRIP/data_NGRIP_combined_hour.txt'; 
+      case 'GITS'
+            param{kk}.InputAWSFile = ['../AWS_Processing/Output/GITS_',...
+                model_version, '/data_GITS_combined_hour.txt'];
+            param{kk}.OutputRoot = 'C:\Data_save\CC';
+
+    % ======== other stations =================
+    %     case {'KAN-U' 'KAN_U'}
+    % %         param{kk}.InputAWSFile = 'data_KAN_U_combined_hour.txt';
+    %         param{kk}.InputAWSFile = 'data_KAN_U_2012.txt';
+    %         param{kk}.InputAWSFile = '../AWS_Processing/Output/KAN_U/data_KAN_U_combined_hour.txt';
+        case {'Miege' 'FA'}
+            param{kk}.InputAWSFile = 'data_Miege_combined_hour.txt';
+        case PROMICE_dir
+            param{kk}.InputAWSFile = ['../AWS_Processing/Output/PROMICE/',...
+                param{kk}.station, '_RACMO/data_',...
+                param{kk}.station, '_combined_hour.txt'];
+            param{kk}.shallow_firn_lim = 3;
+            param{kk}.deep_firn_lim = 5;
+            param{kk}.min_tot_thick = 15;
+
+            param{kk}.lim_new_lay = 0.005;
+            param{kk}.z_max = 20;
+            param{kk}.dz_ice = param{kk}.z_max/NumLayer;
+        otherwise
+            disp('Missing data file for the requested station.');
+    end
 
 % When you add sites
 % 1) in Main.m: define path of InputAWSFile
-% 2) in IniTemperatureDensity.m: Define path for density profile
+% 2) in  .m: Define path for density profile
 % 3) Make sure all information is reported in Input/Constants/InfoStation.csv file
 
 %%  ========= Run model with name tag of your choice =======================
-[RunName, c] = HHsubsurf(param);
+ [RunName, c] = HHsubsurf(param{kk});
+
 end
-% 
+end

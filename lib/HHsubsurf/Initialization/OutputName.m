@@ -23,7 +23,7 @@ else
             tag, c.year(1),c.year(2), text_Si ,c.prec_rate, c.Ck, s3);
     end
 
-    c.OutputFolder = sprintf('./Output/%s',RunName);
+    c.OutputFolder = sprintf('%s/%s',c.OutputRoot,RunName);
     [~,~,id] =  mkdir(c.OutputFolder);
     count = 1;
     while ~isempty(strfind(id,'DirectoryExists'))

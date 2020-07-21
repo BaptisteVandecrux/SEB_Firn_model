@@ -13,5 +13,5 @@ gradsnowthick;0.1;along-slope vertical gradient in initial snow&firn layer thick
 gradTice;-0.001;along-slope vertical gradient in initial ice temperatures (C/m)
 H_T;2.6;initial height of temperature and humidity sensor over ice horizon (m)
 H_WS;3.1;initial height of anemometer over ice horizon (m)
-snowthick_ini;0;initial snow layer thickness below ELA (m)
+snowthick_ini;1;initial snow layer thickness below ELA (m)
 T_ice_AWS;-0.1;initial snow & ice temperature (C)

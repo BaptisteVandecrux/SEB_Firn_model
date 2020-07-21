@@ -33,7 +33,6 @@ time_mat = varargin{1};
 depth_mat = varargin{2};
 mat = varargin{3};
 
-
 if size(mat,1) ~= size(depth_mat,1)
     mat = vertcat(mat, mat(end,:));
     time_mat = vertcat(time_mat,time_mat(end,:));
@@ -42,7 +41,7 @@ end
 
 % default parameters
 param.PlotTherm = 'yes';
-param.PlotIsoTherm = 'yes';
+param.PlotIsoTherm = 'no';
 param.XLabel = 'Time';
 param.YLabel = 'Depth (m)';
 param.Range = min(min(mat)):(max(max(mat))-min(min(mat)))/10:max(max(mat));
@@ -56,6 +55,7 @@ param.DataIsoTherm = mat;
 param.Tsurf = [];
 param.ValueIsoTherm = [-1 -5];
 param.Interp = 'off';
+param.FlatSurface = 'no';
 
 %assigning user defined parameters
 if length(varargin)>3
@@ -65,6 +65,15 @@ if length(varargin)>3
     for i = 4:2:length(varargin)
         param.(varargin{i}) = varargin{i+1};
     end
+end
+
+if strcmp(param.FlatSurface,'yes')
+    lm = fitlm(time_mat(1,:),depth_mat(1,:));
+    trend_surf = lm.Coefficients.Estimate(2);
+    fprintf('Average advection: %0.2f metres per decade\n',trend_surf*365*10)
+
+    depth_mat =  depth_mat...
+        -(trend_surf*time_mat+lm.Coefficients.Estimate(1));
 end
 
 % making sure that the data for isotherm have the right size
@@ -159,10 +168,9 @@ col =contourcmap(param.cmap,param.Range,'colorbar','on');
 
 view(0,-90)
 
-temp = datetime(datestr(datenum(0,0,time_mat(1,:))));
 time_mod = datenum(0,0,time_mat(1,:));
 
-set_monthly_tick(temp,gca);
+set_monthly_tick(time_mod);
 box on
 axis tight
 
