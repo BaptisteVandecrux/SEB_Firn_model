@@ -39,8 +39,8 @@ The working directory should contain:
 * “Analysis.m” script: Generates the plots used in the publication.
 
 ## Getting started <a name="start" />
-- Download the scripts from Github
 
+- Download the scripts from Github
 - Place the input data file in the Input/Weather data folder. For the example, let's continue with the data_KAN_M_combined_hour.txt previously generated using the [AWS data treatment suite](https://github.com/BaptisteVandecrux/AWS_processing). A short version of that file is already present in the Weather data folder.
 
 - Open Main.m in Matlab and set the name of the station you want to process:
@@ -57,13 +57,13 @@ add the station and its location to the list of station data location (~line 85)
             param{kk}.InputAWSFile = './Input/Weather data/data_KAN_M_combined_hour.txt';
 ``` 
 
-- We now need to prescribe the initial density and temperature profile. At KAN_M the surface is composed of bare ice seasonally covered by snow. In the folder Input/Initial state/density, there is no file for KAN_M so we can make a copy of *DensityProfile_NUK_K.csv* (NUK_K is also composed of bare ice overlaid by snow) and name it *DensityProfile_KAN_M.csv*. You can see that there are some density profiles in that folder that can be used to initialize the model. More info about how the model initialize density, temperature and liquid water content are available in [InitializationSubsurface.m](SEB_Firn_model/lib/HHsubsurf/Initialization/InitializationSubsurface.m).
+- We now need to prescribe the initial density and temperature profile. At KAN_M the surface is composed of bare ice seasonally covered by snow. In the folder Input/Initial state/density, there is no file for KAN_M so we can make a copy of *DensityProfile_NUK_K.csv* (NUK_K is also composed of bare ice overlaid by snow) and name it *DensityProfile_KAN_M.csv*. You can see that there are some density profiles in that folder that can be used to initialize the model. More info about how the model initialize density, temperature and liquid water content are available in [InitializationSubsurface.m](/lib/HHsubsurf/Initialization/InitializationSubsurface.m).
 
 - Make sure that the station is listed in [StationInfo.csv](/Input/Constants/StationInfo.csv) along with the appropriate information about the locaiton. Default values are currently used for KAN_M and updated info should be inserted in that file.
 
 - You can now run the Main.m script. It will create a folder in *Output* where outputs will be saved in netcdf format. Consider the [Panoply tool](https://www.giss.nasa.gov/tools/panoply/) for easy visualization.
 
-- Many ideas for plots and analysis are available in [Analysis.m](Analysis.m) or in the [Study-specific scripts folder](/Study-specific scripts)
+- Many ideas for plots and analysis are available in [Analysis.m](Analysis.m) or in the [Study-specific scripts](/Study-specific%20scripts)
 
 ## Coding and running tips <a name="tips" />
 - I have divided every scripts into sections using the command ‘%%’. Matlab allow to expend or collapse each section using the ‘+’ or ‘-‘ sign next to ‘%%’. This works also for ‘for’ loops and ‘if’ loops. For better visibility, you can always start by collapsing all sections (‘View’ tab> collapse all) and open only the section that you are interested in. Each section should have a clear name to help you navigate into the script. This should avoid you to scroll up and down all day.
