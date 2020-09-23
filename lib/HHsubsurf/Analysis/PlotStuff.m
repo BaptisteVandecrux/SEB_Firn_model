@@ -87,108 +87,110 @@ function [T_subsurf_mod] = PlotStuff(Tsurf_obs, Tsurf, TT, depth_act,depth_act_s
 % end
 
 %% ============ Melt Season Study ==============================
-disp('Plotting melt intensity')
-data_temp =table(time_mod,meltflux);
-data_temp.Properties.VariableNames = {'time','meltflux'};
+try 
+    disp('Plotting melt intensity')
+    data_temp =table(time_mod,meltflux);
+    data_temp.Properties.VariableNames = {'time','meltflux'};
 
-data_temp = AvgTable(data_temp,'daily','sum');
-melt_daily = data_temp.meltflux;
-time_daily = data_temp.time;
-melt_season = table();
+    data_temp = AvgTable(data_temp,'daily',@sum);
+    melt_daily = data_temp.meltflux;
+    time_daily = data_temp.time;
+    melt_season = table();
 
-melting = melt_daily>1;
+    melting = melt_daily>1;
 
-DV =datevec(data_temp.time);
-years_uni = unique(DV(:,1));
-melt_info =table();
-for i = 1:length(years_uni)
-    ind_year = (DV(:,1) == years_uni(i));
-    melt_year{i} = melt_daily(ind_year);
-    time_year{i}  = data_temp.time(ind_year);
-    melt_info.year(i) = years_uni(i);
-    melt_info.date_start_year(i) = datenum(years_uni(i),1,1);
-    if sum(melt_year{i})>0
-        melt_info.start_date(i) = time_year{i}(find(melt_year{i},1,'first'));
-        melt_info.end_date(i) = time_year{i}(find(melt_year{i},1,'last'));
-        melt_info.duration(i) = melt_info.end_date(i)-melt_info.start_date(i);
-        melt_info.max_melt(i) = max( melt_daily(ind_year));
-        melt_info.cum_melt(i) = sum( melt_daily(ind_year));
+    DV =datevec(data_temp.time);
+    years_uni = unique(DV(:,1));
+    melt_info =table();
+    for i = 1:length(years_uni)
+        ind_year = (DV(:,1) == years_uni(i));
+        melt_year{i} = melt_daily(ind_year);
+        time_year{i}  = data_temp.time(ind_year);
+        melt_info.year(i) = years_uni(i);
+        melt_info.date_start_year(i) = datenum(years_uni(i),1,1);
+        if sum(melt_year{i})>0
+            melt_info.start_date(i) = time_year{i}(find(melt_year{i},1,'first'));
+            melt_info.end_date(i) = time_year{i}(find(melt_year{i},1,'last'));
+            melt_info.duration(i) = melt_info.end_date(i)-melt_info.start_date(i);
+            melt_info.max_melt(i) = max( melt_daily(ind_year));
+            melt_info.cum_melt(i) = sum( melt_daily(ind_year));
+        else
+            melt_info.start_date(i) = time_year{i}(10);
+            melt_info.end_date(i) = time_year{i}(10);
+            melt_info.duration(i) = NaN;
+            melt_info.max_melt(i) =NaN;
+            melt_info.cum_melt(i) = NaN;
+        end
+    end
+
+    col = lines(length(years_uni));
+    set(0,'defaultfigurepapersize',[16 29.7]);
+    set(0,'defaultfigurepaperposition',[.25 .25 fliplr([29.7 16])-0.5]);
+    set(0,'DefaultTextInterpreter','none');
+    set(0, 'DefaultFigureUnits', 'centimeters');
+    set(0, 'DefaultFigurePosition', [.25 .25 fliplr([29.7 16])-0.5]);
+    f = figure('Visible',vis);
+    hold on
+    for i = 1:length(years_uni)
+        plot([melt_info.start_date(i); melt_info.end_date(i)]'...
+            -[melt_info.date_start_year(i)' melt_info.date_start_year(i)'],...
+            [melt_info.year(i); melt_info.year(i)],'-o','LineWidth',1,'Color',col(i,:))
+        ind = and(time_year{i}>=melt_info.start_date(i),time_year{i}<=melt_info.end_date(i));
+        plot(time_year{i}(ind)- melt_info.date_start_year(i), ...
+            melt_info.year(i) +  melt_year{i}(ind)/1000,'LineWidth',2,'Color',col(i,:))
+
+        %    plot(time_year{i}([find(ind,1,'first') find(ind,1,'first')])...
+        %        - melt_info.date_start_year(i), ...
+        %         melt_info.year(i) +  [0 1],'LineWidth',1,'Color',col(i,:))
+        %     q = quiver(,0,'Color',col(i,:));
+        %      q.MaxHeadSize = 500;
+
+        ah = annotation('arrow',...
+            'headStyle','vback3','HeadLength',10,'HeadWidth',5);
+        set(ah,'parent',gca)
+        set(ah,'position',...
+            [time_year{i}(find(ind,1,'first'))- melt_info.date_start_year(i),...
+            melt_info.year(i),0,0.928],'Color','k');
+        if i==length(years_uni)
+            ah2 = annotation('textbox',[1 1 1 1],...
+                'String','Melt\newline10mm','LineStyle','none');
+            set(ah2,'parent',gca)
+            set(ah2,'position',...
+                [time_year{i}(find(ind,1,'first'))-20 - melt_info.date_start_year(i),...
+                melt_info.year(i)+0.1 1 1],...
+                'FitBoxToText','on');
+        end
+    end
+
+    lm{1} = fitlm(melt_info.year,melt_info.start_date - melt_info.date_start_year);
+    lm{2} = fitlm(melt_info.year,melt_info.end_date - melt_info.date_start_year);
+    % lm{3} = fitlm(melt_info.year,melt_info.end_date - melt_info.date_start_year);
+
+    for j = 1:2
+        max(lm{j}.Coefficients.pValue)
+        plot(melt_info.year*lm{j}.Coefficients.Estimate(2) +lm{j}.Coefficients.Estimate(1),...
+            melt_info.year,':k')
+    end
+    axis fill
+    box on
+    ylim([years_uni(1)-0.2, years_uni(end)+max( melt_year{i}(ind)/1000)+0.1])
+    if strcmp(c.station,'CP1')
+        xlim([135 260])
     else
-        melt_info.start_date(i) = time_year{i}(10);
-        melt_info.end_date(i) = time_year{i}(10);
-        melt_info.duration(i) = NaN;
-        melt_info.max_melt(i) =NaN;
-        melt_info.cum_melt(i) = NaN;
+        xlim([90 310])
     end
-end
+    set(gca,'XMinorTick','on','YTick',years_uni,'YTickLabel',years_uni)
+    title(c.station)
+    xlabel('Day of year')
+    ylabel('Year')
+    print(f,sprintf('%s/MeltSeason',OutputFolder),'-dtiff')
 
-col = lines(length(years_uni));
-set(0,'defaultfigurepapersize',[16 29.7]);
-set(0,'defaultfigurepaperposition',[.25 .25 fliplr([29.7 16])-0.5]);
-set(0,'DefaultTextInterpreter','none');
-set(0, 'DefaultFigureUnits', 'centimeters');
-set(0, 'DefaultFigurePosition', [.25 .25 fliplr([29.7 16])-0.5]);
-f = figure('Visible',vis);
-hold on
-for i = 1:length(years_uni)
-    plot([melt_info.start_date(i); melt_info.end_date(i)]'...
-        -[melt_info.date_start_year(i)' melt_info.date_start_year(i)'],...
-        [melt_info.year(i); melt_info.year(i)],'-o','LineWidth',1,'Color',col(i,:))
-    ind = and(time_year{i}>=melt_info.start_date(i),time_year{i}<=melt_info.end_date(i));
-    plot(time_year{i}(ind)- melt_info.date_start_year(i), ...
-        melt_info.year(i) +  melt_year{i}(ind)/1000,'LineWidth',2,'Color',col(i,:))
-    
-    %    plot(time_year{i}([find(ind,1,'first') find(ind,1,'first')])...
-    %        - melt_info.date_start_year(i), ...
-    %         melt_info.year(i) +  [0 1],'LineWidth',1,'Color',col(i,:))
-    %     q = quiver(,0,'Color',col(i,:));
-    %      q.MaxHeadSize = 500;
-    
-    ah = annotation('arrow',...
-        'headStyle','vback3','HeadLength',10,'HeadWidth',5);
-    set(ah,'parent',gca)
-    set(ah,'position',...
-        [time_year{i}(find(ind,1,'first'))- melt_info.date_start_year(i),...
-        melt_info.year(i),0,0.928],'Color','k');
-    if i==length(years_uni)
-        ah2 = annotation('textbox',[1 1 1 1],...
-            'String','Melt\newline10mm','LineStyle','none');
-        set(ah2,'parent',gca)
-        set(ah2,'position',...
-            [time_year{i}(find(ind,1,'first'))-20 - melt_info.date_start_year(i),...
-            melt_info.year(i)+0.1 1 1],...
-            'FitBoxToText','on');
-    end
+    set(0,'defaultfigurepapersize',[29.7 16]);
+    set(0,'defaultfigurepaperposition',[.25 .25 [29.7 16]-0.5]);
+    set(0,'DefaultTextInterpreter','none');
+    set(0, 'DefaultFigureUnits', 'centimeters');
+    set(0, 'DefaultFigurePosition', [.25 .25 [29.7 16]-0.5]);
 end
-
-lm{1} = fitlm(melt_info.year,melt_info.start_date - melt_info.date_start_year);
-lm{2} = fitlm(melt_info.year,melt_info.end_date - melt_info.date_start_year);
-% lm{3} = fitlm(melt_info.year,melt_info.end_date - melt_info.date_start_year);
-
-for j = 1:2
-    max(lm{j}.Coefficients.pValue)
-    plot(melt_info.year*lm{j}.Coefficients.Estimate(2) +lm{j}.Coefficients.Estimate(1),...
-        melt_info.year,':k')
-end
-axis fill
-box on
-ylim([years_uni(1)-0.2, years_uni(end)+max( melt_year{i}(ind)/1000)+0.1])
-if strcmp(c.station,'CP1')
-    xlim([135 260])
-else
-    xlim([90 310])
-end
-set(gca,'XMinorTick','on','YTick',years_uni,'YTickLabel',years_uni)
-title(c.station)
-xlabel('Day of year')
-ylabel('Year')
-print(f,sprintf('%s/MeltSeason',OutputFolder),'-dtiff')
-
-set(0,'defaultfigurepapersize',[29.7 16]);
-set(0,'defaultfigurepaperposition',[.25 .25 [29.7 16]-0.5]);
-set(0,'DefaultTextInterpreter','none');
-set(0, 'DefaultFigureUnits', 'centimeters');
-set(0, 'DefaultFigurePosition', [.25 .25 [29.7 16]-0.5]);
 
 %% ============ Modelled Tsurf vs Obs =========================
 

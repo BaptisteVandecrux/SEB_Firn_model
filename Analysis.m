@@ -188,14 +188,14 @@ for i = 3:9
     SEB_hour_MJ.(SEB_hour_MJ.Properties.VariableNames{i}) = ...
             SEB_hour_MJ.(SEB_hour_MJ.Properties.VariableNames{i}).*3600/1000000;
 end
-SEB_JJA = AvgTableJJA(SEB_hour_MJ,'sum');
+SEB_JJA = AvgTableJJA(SEB_hour_MJ,@sum);
 writetable(SEB_JJA, sprintf('%s/SEB_JJA.txt', OutputFolder))
 
 disp('Writing hourly, monthly, yearly, seasonal SMB')
 runoffhour = -[runoff(1); runoff(2:end)-runoff(1:end-1)] ;
-SMB = snowfall+rainfall+sublimation+runoffhour;
+SMB = snowfall+rainfall+sublimation_mweq+runoffhour;
 
-SMB_hour = table(time, time_yr, snowfall, rainfall, sublimation, runoffhour,SMB);
+SMB_hour = table(time, time_yr, snowfall, rainfall, sublimation_mweq, runoffhour,SMB);
 SMB_month = AvgTable(SMB_hour,'monthly');
 writetable(SMB_hour, sprintf('%s/SMB_hour.txt', OutputFolder));
 writetable(SMB_month, sprintf('%s/SMB_month.txt', OutputFolder));
@@ -222,9 +222,9 @@ if strcmp(PlotThings, 'yes')
 
     T_subsurf_mod = PlotStuff(Tsurf_obs, Tsurf, TT, depth_act,depth_act_save, depth_weq, ...
         T_ice, rho_all, rho, snowc, snic, slwc, rfrz, time_mod, Surface_Height, ...
-        snowfall, rainfall, runoff, H_subl, H_surf, H_surf_weq, H_comp, SHF, LHF, ...
+        snowfall, rainfall, runoff, sublimation_mweq, H_surf, SMB_mweq, H_comp, SHF, LHF, ...
         SRin, SRout, LRin, LRout_mdl, rainHF, meltflux, TT_obs, depth_obs, ...
-        T, sublimation, OutputFolder, compaction,...
+        T, sublimation_mweq, OutputFolder, compaction,...
         thickness_act, thickness_weq, T, GF,dgrain, data_AWS, vis, c);
 end
 

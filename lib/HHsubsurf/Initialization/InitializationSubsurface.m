@@ -50,6 +50,8 @@ if c.retmip == 0
             filename = './Input/Initial state/density/RetMIP_density_Dye-2 2016.csv';
         case 'NUK_K'
             filename = './Input/Initial state/density/DensityProfile_NUK_K.csv';
+        case 'KAN_M'
+            filename = './Input/Initial state/density/DensityProfile_NUK_K.csv';
         case 'KAN-U'
     %         if c.year(1) == 2012
                 filename = './Input/Initial state/density/RetMIP_density_KAN-U 2012.csv';
@@ -228,7 +230,8 @@ else
     if length(mean_firndensity)<length(c.cdel)
         x =[depth_weq(1:length(mean_firndensity)); 30; 70];
         y = [mean_firndensity; 830;830];
-        fo = fit(x, y, 'poly2');
+        p = polyfit(x,y,2);
+        fo = @(x) p(1)*x.^2 + p(2)*x + p(3);
 
         rhofirn_ini(length(mean_firndensity)+1:length(c.cdel),1) = ...
             fo(depth_weq(length(mean_firndensity)+1:length(c.cdel)));
