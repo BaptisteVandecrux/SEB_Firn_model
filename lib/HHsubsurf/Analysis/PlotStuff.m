@@ -1,6 +1,6 @@
 function [T_subsurf_mod] = PlotStuff(Tsurf_obs, Tsurf, TT, depth_act,depth_act_save, depth_weq, ...
     T_ice, rho_all, rho, snowc, snic, slwc, rfrz, time_mod, Surface_Height, ...
-    snowfall, rainfall, runoff, H_subl, H_surf, H_surf_weq, H_comp, SHF, LHF, ...
+    snowfall, rainfall, runoff,  H_surf,  H_comp, SHF, LHF, ...
     SRin, SRout, LRin, LRout_mdl, rainHF, meltflux, TT_obs, depth_obs, ...
     T_obs, sublimation, OutputFolder, compaction,...
     thickness_act, thickness_weq, T, GF, dgrain, data_AWS, vis, c)
@@ -82,115 +82,120 @@ function [T_subsurf_mod] = PlotStuff(Tsurf_obs, Tsurf, TT, depth_act,depth_act_s
 %     if (c.verbose==0)
 %         close(f);
 %     else
-%         print(f, sprintf('%s/precipitation_val',OutputFolder), '-dtiff')
+%         print(f, sprintf('%s/precipitation_val',OutputFolder), '-djpeg')
 %     end
 % end
 
 %% ============ Melt Season Study ==============================
-try 
-    disp('Plotting melt intensity')
-    data_temp =table(time_mod,meltflux);
-    data_temp.Properties.VariableNames = {'time','meltflux'};
+disp('Plotting melt intensity')
+data_temp =table(time_mod,meltflux);
+data_temp.Properties.VariableNames = {'time','meltflux'};
 
-    data_temp = AvgTable(data_temp,'daily',@sum);
-    melt_daily = data_temp.meltflux;
-    time_daily = data_temp.time;
-    melt_season = table();
+data_temp = AvgTable(data_temp,'daily',@sum);
+melt_daily = data_temp.meltflux;
+time_daily = data_temp.time;
+melt_season = table();
 
-    melting = melt_daily>1;
+melting = melt_daily>1;
 
-    DV =datevec(data_temp.time);
-    years_uni = unique(DV(:,1));
-    melt_info =table();
-    for i = 1:length(years_uni)
-        ind_year = (DV(:,1) == years_uni(i));
-        melt_year{i} = melt_daily(ind_year);
-        time_year{i}  = data_temp.time(ind_year);
-        melt_info.year(i) = years_uni(i);
-        melt_info.date_start_year(i) = datenum(years_uni(i),1,1);
-        if sum(melt_year{i})>0
-            melt_info.start_date(i) = time_year{i}(find(melt_year{i},1,'first'));
-            melt_info.end_date(i) = time_year{i}(find(melt_year{i},1,'last'));
-            melt_info.duration(i) = melt_info.end_date(i)-melt_info.start_date(i);
-            melt_info.max_melt(i) = max( melt_daily(ind_year));
-            melt_info.cum_melt(i) = sum( melt_daily(ind_year));
-        else
-            melt_info.start_date(i) = time_year{i}(10);
-            melt_info.end_date(i) = time_year{i}(10);
-            melt_info.duration(i) = NaN;
-            melt_info.max_melt(i) =NaN;
-            melt_info.cum_melt(i) = NaN;
-        end
-    end
-
-    col = lines(length(years_uni));
-    set(0,'defaultfigurepapersize',[16 29.7]);
-    set(0,'defaultfigurepaperposition',[.25 .25 fliplr([29.7 16])-0.5]);
-    set(0,'DefaultTextInterpreter','none');
-    set(0, 'DefaultFigureUnits', 'centimeters');
-    set(0, 'DefaultFigurePosition', [.25 .25 fliplr([29.7 16])-0.5]);
-    f = figure('Visible',vis);
-    hold on
-    for i = 1:length(years_uni)
-        plot([melt_info.start_date(i); melt_info.end_date(i)]'...
-            -[melt_info.date_start_year(i)' melt_info.date_start_year(i)'],...
-            [melt_info.year(i); melt_info.year(i)],'-o','LineWidth',1,'Color',col(i,:))
-        ind = and(time_year{i}>=melt_info.start_date(i),time_year{i}<=melt_info.end_date(i));
-        plot(time_year{i}(ind)- melt_info.date_start_year(i), ...
-            melt_info.year(i) +  melt_year{i}(ind)/1000,'LineWidth',2,'Color',col(i,:))
-
-        %    plot(time_year{i}([find(ind,1,'first') find(ind,1,'first')])...
-        %        - melt_info.date_start_year(i), ...
-        %         melt_info.year(i) +  [0 1],'LineWidth',1,'Color',col(i,:))
-        %     q = quiver(,0,'Color',col(i,:));
-        %      q.MaxHeadSize = 500;
-
-        ah = annotation('arrow',...
-            'headStyle','vback3','HeadLength',10,'HeadWidth',5);
-        set(ah,'parent',gca)
-        set(ah,'position',...
-            [time_year{i}(find(ind,1,'first'))- melt_info.date_start_year(i),...
-            melt_info.year(i),0,0.928],'Color','k');
-        if i==length(years_uni)
-            ah2 = annotation('textbox',[1 1 1 1],...
-                'String','Melt\newline10mm','LineStyle','none');
-            set(ah2,'parent',gca)
-            set(ah2,'position',...
-                [time_year{i}(find(ind,1,'first'))-20 - melt_info.date_start_year(i),...
-                melt_info.year(i)+0.1 1 1],...
-                'FitBoxToText','on');
-        end
-    end
-
-    lm{1} = fitlm(melt_info.year,melt_info.start_date - melt_info.date_start_year);
-    lm{2} = fitlm(melt_info.year,melt_info.end_date - melt_info.date_start_year);
-    % lm{3} = fitlm(melt_info.year,melt_info.end_date - melt_info.date_start_year);
-
-    for j = 1:2
-        max(lm{j}.Coefficients.pValue)
-        plot(melt_info.year*lm{j}.Coefficients.Estimate(2) +lm{j}.Coefficients.Estimate(1),...
-            melt_info.year,':k')
-    end
-    axis fill
-    box on
-    ylim([years_uni(1)-0.2, years_uni(end)+max( melt_year{i}(ind)/1000)+0.1])
-    if strcmp(c.station,'CP1')
-        xlim([135 260])
+DV =datevec(data_temp.time);
+years_uni = unique(DV(:,1));
+melt_info =table();
+for i = 1:length(years_uni)
+    ind_year = (DV(:,1) == years_uni(i));
+    melt_year{i} = melt_daily(ind_year);
+    time_year{i}  = data_temp.time(ind_year);
+    melt_info.year(i) = years_uni(i);
+    melt_info.date_start_year(i) = datenum(years_uni(i),1,1);
+    if sum(melt_year{i})>0
+        melt_info.start_date(i) = time_year{i}(find(melt_year{i},1,'first'));
+        melt_info.end_date(i) = time_year{i}(find(melt_year{i},1,'last'));
+        melt_info.duration(i) = melt_info.end_date(i)-melt_info.start_date(i);
+        melt_info.max_melt(i) = max( melt_daily(ind_year));
+        melt_info.cum_melt(i) = sum( melt_daily(ind_year));
     else
-        xlim([90 310])
+        melt_info.start_date(i) = time_year{i}(10);
+        melt_info.end_date(i) = time_year{i}(10);
+        melt_info.duration(i) = NaN;
+        melt_info.max_melt(i) =NaN;
+        melt_info.cum_melt(i) = NaN;
     end
-    set(gca,'XMinorTick','on','YTick',years_uni,'YTickLabel',years_uni)
-    title(c.station)
-    xlabel('Day of year')
-    ylabel('Year')
-    print(f,sprintf('%s/MeltSeason',OutputFolder),'-dtiff')
-
-    set(0,'defaultfigurepapersize',[29.7 16]);
-    set(0,'defaultfigurepaperposition',[.25 .25 [29.7 16]-0.5]);
-    set(0,'DefaultTextInterpreter','none');
-    set(0, 'DefaultFigureUnits', 'centimeters');
-    set(0, 'DefaultFigurePosition', [.25 .25 [29.7 16]-0.5]);
 end
+
+if strcmp(c.station,'NUK_K')
+    DIV = 10;
+else
+    DIV = 1;
+end
+
+col = lines(length(years_uni));
+set(0,'defaultfigurepapersize',[16 29.7]);
+set(0,'defaultfigurepaperposition',[.25 .25 fliplr([29.7 16])-0.5]);
+set(0,'DefaultTextInterpreter','none');
+set(0, 'DefaultFigureUnits', 'centimeters');
+set(0, 'DefaultFigurePosition', [.25 .25 fliplr([29.7 16])-0.5]);
+f = figure('Visible',vis);
+hold on
+for i = 1:length(years_uni)
+    plot([melt_info.start_date(i); melt_info.end_date(i)]'...
+        -[melt_info.date_start_year(i)' melt_info.date_start_year(i)'],...
+        [melt_info.year(i); melt_info.year(i)],'-o','LineWidth',1,'Color',col(i,:))
+    ind = and(time_year{i}>=melt_info.start_date(i),time_year{i}<=melt_info.end_date(i));
+    plot(time_year{i}(ind)- melt_info.date_start_year(i), ...
+        melt_info.year(i) +  melt_year{i}(ind)/1000/DIV,'LineWidth',2,'Color',col(i,:))
+    
+    %    plot(time_year{i}([find(ind,1,'first') find(ind,1,'first')])...
+    %        - melt_info.date_start_year(i), ...
+    %         melt_info.year(i) +  [0 1],'LineWidth',1,'Color',col(i,:))
+    %     q = quiver(,0,'Color',col(i,:));
+    %      q.MaxHeadSize = 500;
+    
+    ah = annotation('arrow',...
+        'headStyle','vback3','HeadLength',10,'HeadWidth',5);
+    set(ah,'parent',gca)
+    set(ah,'position',...
+        [time_year{i}(find(ind,1,'first'))- melt_info.date_start_year(i),...
+        melt_info.year(i),0,0.928],'Color','k');
+    if i==length(years_uni)
+        ah2 = annotation('textbox',[1 1 1 1],...
+            'String',sprintf('Melt \n%i mm',10*DIV),...
+            'HorizontalAlignment','Center', 'LineStyle','none');
+        set(ah2,'parent',gca)
+        set(ah2,'position',...
+            [time_year{i}(find(ind,1,'first'))-40 - melt_info.date_start_year(i),...
+            melt_info.year(i)+0.1 1 1],...
+            'FitBoxToText','on');
+    end
+end
+clearvars lm
+lm{1} = fitlm(melt_info.year,melt_info.start_date - melt_info.date_start_year);
+lm{2} = fitlm(melt_info.year,melt_info.end_date - melt_info.date_start_year);
+% lm{3} = fitlm(melt_info.year,melt_info.end_date - melt_info.date_start_year);
+
+for j = 1:2
+    max(lm{j}.Coefficients.pValue)
+    plot(melt_info.year*lm{j}.Coefficients.Estimate(2) +lm{j}.Coefficients.Estimate(1),...
+        melt_info.year,':k')
+end
+axis fill
+box on
+ylim([years_uni(1)-0.2, years_uni(end)+max( melt_year{i}(ind)/1000/DIV)+0.5])
+if strcmp(c.station,'CP1')
+    xlim([135 260])
+else
+    xlim([0 365])
+end
+set(gca,'XMinorTick','on','YTick',years_uni,'YTickLabel',years_uni)
+title(c.station)
+xlabel('Day of year')
+ylabel('Year')
+print(f,sprintf('%s/MeltSeason',OutputFolder),'-djpeg')
+
+set(0,'defaultfigurepapersize',[29.7 16]);
+set(0,'defaultfigurepaperposition',[.25 .25 [29.7 16]-0.5]);
+set(0,'DefaultTextInterpreter','none');
+set(0, 'DefaultFigureUnits', 'centimeters');
+set(0, 'DefaultFigurePosition', [.25 .25 [29.7 16]-0.5]);
 
 %% ============ Modelled Tsurf vs Obs =========================
 
@@ -203,7 +208,7 @@ if sum(isnan(Tsurf_obs))<length(Tsurf_obs)
     % axis equal
     % xlabel('Tsurf observed')
     % ylabel('Tsurf modelled')
-    % print(f, sprintf('%s/Tsurf',OutputFolder), '-dtiff')
+    % print(f, sprintf('%s/Tsurf',OutputFolder), '-djpeg')
     
     temp = datevec(time_mod);
     month_obs = temp(:,2);
@@ -212,10 +217,7 @@ if sum(isnan(Tsurf_obs))<length(Tsurf_obs)
     
     g = figure('Visible','off');
     ax = axes('Units','pixels');
-    
-    %     ha = tight_subplot(2,1,[.09 .01], [.08 .08], .09);
-    % set(f,'CurrentAxes',ha(1));
-    scatter(Tsurf_obs-c.T_0,Tsurf,[],13 - month_obs,'.')
+    scatter(Tsurf_obs,Tsurf,[],13 - month_obs,'.')
     col =contourcmap('prism',1:12,'colorbar','on','ColorAlignment','center');
     col.YTickLabel = flipud(months);
     hold on
@@ -245,18 +247,17 @@ if sum(isnan(Tsurf_obs))<length(Tsurf_obs)
     % Dot notation runs in R2014b and later.
     % For R2014a and earlier: set(f,'Visible','on');
     
-    ME = nanmean(Tsurf_obs-c.T_0-Tsurf);
+    ME = nanmean(Tsurf_obs-Tsurf);
     fprintf('ME = %0.2f\n',ME)
-    RMSE = sqrt(nanmean((Tsurf_obs-c.T_0-Tsurf).^2));
+    RMSE = sqrt(nanmean((Tsurf_obs-Tsurf).^2));
     fprintf('RMSE = %0.2f\n',RMSE)
-    
     
     %% box plot month
     f = figure('Visible', 'on');
     ha = tight_subplot(1,2,0.1,0.1,0.1);
     set(f,'CurrentAxes',ha(1));
     
-    bias = Tsurf+c.T_0- Tsurf_obs;
+    bias = Tsurf- Tsurf_obs;
     boxplot(bias,month_obs,'Notch','on');
     hold on
     %         axis tight
@@ -276,15 +277,15 @@ if sum(isnan(Tsurf_obs))<length(Tsurf_obs)
     set(gca,'XTickLabel',{'Night', 'Day'})
     plot(xlimit,[0 0],':k')
     
-    print(f, sprintf('%s/Tsurf_validation',OutputFolder), '-dtiff')
+    print(f, sprintf('%s/Tsurf_validation',OutputFolder), '-djpeg')
     
     %% time series view
     f = figure('Visible',vis);
-    ha = tight_subplot(2,1,[.02 .03],[.1 .01],[.06 .02]);
+    ha = tight_subplot(2,1,[.07 .03],[.15 .08],[.1 .08]);
     
     set(f,'CurrentAxes',ha(1))
     
-    plot(time_mod, Tsurf+c.T_0)
+    plot(time_mod, Tsurf)
     hold on
     plot(time_mod,  Tsurf_obs)
     
@@ -303,7 +304,7 @@ if sum(isnan(Tsurf_obs))<length(Tsurf_obs)
     ylabel('Surface temperature (^o C)','Interpreter','tex')
     
     set(f,'CurrentAxes',ha(2))
-    plot(time_mod, Tsurf+c.T_0-Tsurf_obs,'Color',[255,165,0]/255)   %RGB('orange'))
+    plot(time_mod, Tsurf-Tsurf_obs,'Color',[255,165,0]/255)   %RGB('orange'))
     temp = datevec(time_mod);
     
     if abs(time_mod(1)-time_mod(end))>365
@@ -317,8 +318,8 @@ if sum(isnan(Tsurf_obs))<length(Tsurf_obs)
     
     datetick('x','yyyy-mm','keepticks')
     xlabel('Time')
-    ylabel('Surface temperature bias (^o C)','Interpreter','tex')
-    print(f, sprintf('%s/Tsurf_diff',OutputFolder), '-dpng')
+    ylabel({'Surface temperature', 'difference (^o C)'},'Interpreter','tex')
+    print(f, sprintf('%s/Tsurf_diff',OutputFolder), '-djpeg')
     
 end
 
@@ -402,12 +403,12 @@ if exist('Core_all.mat', 'file') == 2
             set(f,'CurrentAxes',ha(count))
         else
             i_file = 1;
-            NameFile = sprintf('%s/CorePlot%i.tif',OutputFolder, i_file);
+            NameFile = sprintf('%s/CorePlot%i.jpg',OutputFolder, i_file);
             while exist(NameFile, 'file') == 2
                 i_file = i_file + 1;
-                NameFile = sprintf('%s/CorePlot%i.tif',OutputFolder,i_file)  ;
+                NameFile = sprintf('%s/CorePlot%i.jpg',OutputFolder,i_file)  ;
             end
-            print(f,NameFile,'-dtiff');
+            print(f,NameFile,'-djpeg');
             if strcmp(vis,'off')
                 close(f);
             end
@@ -493,12 +494,12 @@ if exist('Core_all.mat', 'file') == 2
     end
     
     i_file = 1;
-    NameFile = sprintf('%s/CorePlot%i.tif',OutputFolder, i_file);
+    NameFile = sprintf('%s/CorePlot%i.jpg',OutputFolder, i_file);
     while exist(NameFile, 'file') == 2
         i_file = i_file + 1;
-        NameFile = sprintf('%s/CorePlot%i.tif',OutputFolder,i_file)  ;
+        NameFile = sprintf('%s/CorePlot%i.jpg',OutputFolder,i_file)  ;
     end
-    print(f,NameFile,'-dtiff');
+    print(f,NameFile,'-djpeg');
     
     if strcmp(vis,'off')
         close(f);
@@ -517,7 +518,7 @@ if exist('Core_all.mat', 'file') == 2
     legend('Average above 5 m deep','Average below 5 m deep',...
         'Location','SouthWest')
     
-    print(f, sprintf('%s/density_comp_2',OutputFolder), '-dtiff')
+    print(f, sprintf('%s/density_comp_2',OutputFolder), '-djpeg')
     if strcmp(vis,'off')
         close(f);
     end
@@ -586,12 +587,12 @@ if exist('Core_all.mat', 'file') == 2
     %             set(gca,'Visible','off')
     %         end
     %         i_file = 1;
-    %         NameFile = sprintf('%s/CorePlot%i.tif',OutputFolder, i_file);
+    %         NameFile = sprintf('%s/CorePlot%i.jpg',OutputFolder, i_file);
     %         while exist(NameFile, 'file') == 2
     %             i_file = i_file + 1;
-    %             NameFile = sprintf('%s/CorePlot%i.tif',OutputFolder,i_file)  ;
+    %             NameFile = sprintf('%s/CorePlot%i.jpg',OutputFolder,i_file)  ;
     %         end
-    %         print(f,NameFile,'-dtiff');
+    %         print(f,NameFile,'-djpeg');
     %         if strcmp(vis,'off')
     %             close(f);
     %         end
@@ -659,7 +660,7 @@ if exist('Core_all.mat', 'file') == 2
         axis tight square
         box on
         set(gca,'XMinorTick','on','YMinorTick','on')
-        print(f,sprintf('%s/EvolutionDensity',OutputFolder),'-dtiff');
+        print(f,sprintf('%s/EvolutionDensity',OutputFolder),'-djpeg');
     end
 end
 
@@ -701,7 +702,7 @@ set(gca,'XMinorTick','on','YMinorTick','on')
 
 xlabel('Time')
 ylabel('Height (m)')
-print(f, sprintf('%s/station_depth',OutputFolder), '-dtiff')
+print(f, sprintf('%s/station_depth',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
@@ -711,7 +712,7 @@ disp('Plotting surface height')
 f = figure('Visible', vis);
 ha=tight_subplot(1,1,0.01,[0.25 0.20],0.2);
 set(f,'CurrentAxes',ha(1))
-[h, l1, l2] = plotyy(time_mod, Surface_Height-Surface_Height(1),...
+[h, l1, l2] = plotyy(time_mod, Surface_Height-Surface_Height(find(~isnan(Surface_Height),1)),...
     time_mod, snowfall);
 hold(h(1));
 h1 = plot(h(1),time_mod,H_surf-H_surf(1),'Color', 'k', 'LineWidth', 2);
@@ -755,29 +756,34 @@ set(gca,'XMinorTick','on','YMinorTick','on','layer','top',...
 xlabel('Time')
 ylabel(h(1),'Surface height (m)')
 ylabel(h(2),'Modelled snowfall and melt (mweq)')
-print(f, sprintf('%s/Melt_surfHeight',OutputFolder), '-dtiff')
+print(f, sprintf('%s/Melt_surfHeight',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
 
 %% =========== Validation with SR ============================
 disp('Plotting surface height for the melting seasons')
+
+if max(melt_daily)>1000
+    melt_daily=melt_daily/1000;
+    unit_melt='m';
+else
+    unit_melt = 'mm' ;
+end
 DV = datevec(time_mod);
 years_list = unique (DV(:,1));
 
 f = figure('Visible',vis,'Position',[0 0 30 length(years_list)/20*70]);
 set(f, 'PaperPosition', [0 0 30 length(years_list)/20*70])    % can be bigger than screen 
-set(f, 'PaperSize', [30 length(years_list)/20*70])    % Same, but for PDF output
-m_1= [0.02 0.15];
-m_2= [0.03 0.1];
-m_3= 0.1;
+set(f, 'PaperSize', [30 length(years_list)])
+
 ha = tight_subplot(round(length(years_list)/2), ...
-    2,m_1, m_2 , m_3);
+    2,[0.05 0.1], [0.1 0.1] , 0.1);
 
 for i= 1: length(years_list)
     
-    i1 = find(time_mod==datenum(years_list(i),5,1),1,'first');
-    i2 = find(time_mod==datenum(years_list(i),9,20),1,'first');
+    i1 = find(time_mod==datenum(years_list(i),4,1),1,'first');
+    i2 = find(time_mod==datenum(years_list(i),10,1),1,'first');
     if isempty(i2)
         i2 = length(time_mod);
     end
@@ -790,26 +796,23 @@ for i= 1: length(years_list)
     set(f,'CurrentAxes',ha(i))
     hold on
     [axout,h1,h3]=plotyy(time_mod(i1:i2),H_surf_comp(i1:i2)-H_surf_comp(i1),...
-        time_daily,melt_daily)
+        time_daily,melt_daily);
     ind = i1:i2;
     h2 = plot( time_mod(i1:i2),Surface_Height(ind)-Surface_Height(...
         ind(find(~isnan(Surface_Height(ind)),1,'first'))),...
     'LineWidth',1.5);
 
     set_monthly_tick(time_mod(i1:i2))
-    h3.Color = [96,96,96]/255;
-    h3.LineWidth = 1.5;
-    h1.LineWidth = 1.5;
-    h1.Color = 'b';
-    h2.LineWidth = 1.5;
-    h2.Color = 'r';
-    axout(1).YAxis.Color = 'k';
-    axout(2).YAxis.Color = [96,96,96]/255;
+    h3.Color = [96,96,96]/255; h1.Color = 'b'; h2.Color = 'b'; 
+    h1.LineStyle = '--';
+    h3.LineWidth = 1.5;  h1.LineWidth = 1.5; h2.LineWidth = 1.5;
+    axout(1).YAxis.Color =  h1.Color;
+    axout(2).YAxis.Color = h3.Color;
     axout(1).YLabel.String='Surface height (m)';
-    axout(2).YLabel.String='Daily melt (mm w.e.)';
+    axout(2).YLabel.String=['Daily melt (',unit_melt,' w.e.)'];
     axout(2).XAxis.Visible = 'off';
-   axout(1).XLim =   time_mod([i1 i2]);
-   axout(2).XLim =   time_mod([i1 i2]);
+    axout(1).XLim =   [datenum(years_list(i),4,1),...
+        datenum(years_list(i),10,1)]; axout(2).XLim = axout(1).XLim;
     box on
     axout(1).YLim = [nanmin([Surface_Height(i1:i2)-Surface_Height(i1);...
         H_surf_comp(i1:i2)-H_surf_comp(i1)]),...
@@ -822,16 +825,15 @@ for i= 1: length(years_list)
     set(axout(1),'XTick',datenum(datenum(years_list(i),5:9,1)),...
         'XMinorTick','on','YMinorTick','on')
     datetick('x','keepticks','keeplimits')
+    if i<length(years_list)-1
+        axout(1).XTickLabel='';
+    end
 end
 
-legendflex([h1 h2 h3],{'modelled height',...
-    'observed height','modelled melt'},...
-    'ncol',1,...
-    'ref',gcf,...
-    'box','off',...
-'anchor',{'n' 'n'});
+legendflex([h1 h2 h3],{'modelled height','observed height','modelled melt'},...
+    'ncol',1, 'ref',gcf, 'box','off', 'anchor',{'n' 'n'});
 
-print(f, sprintf('%s/validation_SR',OutputFolder), '-dtiff')
+print(f, sprintf('%s/validation_SR',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
@@ -890,7 +892,7 @@ set(gca,'XMinorTick','on',...
     'YAxisLocation','right',...
     'FontSize',10);
 
-print(f, sprintf('%s/firn_evolution_1',OutputFolder), '-dtiff')
+print(f, sprintf('%s/firn_evolution_1',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
@@ -971,7 +973,7 @@ set(gca,'XMinorTick','on',...
     'YAxisLocation','right',...
     'FontSize',10);
 
-print(f, sprintf('%s/firn_evolution_2',OutputFolder), '-dtiff')
+print(f, sprintf('%s/firn_evolution_2',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
@@ -1019,7 +1021,7 @@ set(f,'CurrentAxes',ha(2))
     ha(2).YAxisLocation = 'left';
     ha(2).XAxisLocation = 'top';
 
-print(f, sprintf('%s/firn_evolution_2',OutputFolder), '-dtiff')
+print(f, sprintf('%s/firn_evolution_2',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
@@ -1037,78 +1039,6 @@ end
 %     depth_act_save(:,end).^2.*P_end(1)+depth_act_save(:,1).*P_end(2)+P_end(3))
 % xlim([0 20])
 
-%% Plot modelled versus observed temperature profile
-if strcmp(c.station,'GITS')
-    opts = delimitedTextImportOptions("NumVariables", 3);
-    opts.DataLines = [2, Inf];
-    opts.Delimiter = ",";
-    opts.VariableNames = ["depth", "density", "temperature"];
-    opts.VariableTypes = ["double", "double", "double"];
-    opts.ExtraColumnsRule = "ignore";
-    opts.EmptyLineRule = "read";
-    data1966 = readtable("C:\Users\bav\OneDrive - Geological survey of Denmark and Greenland\Data\Camp Century\Liam\camp_century_1966.csv", opts);
-    clear opts
-
-    opts = delimitedTextImportOptions("NumVariables", 3);
-    opts.DataLines = [2, Inf];
-    opts.Delimiter = ",";
-    opts.VariableNames = ["depth", "density", "temperature"];
-    opts.VariableTypes = ["double", "double", "double"];
-    opts.ExtraColumnsRule = "ignore";
-    opts.EmptyLineRule = "read";
-    data2017 = readtable("C:\Users\bav\OneDrive - Geological survey of Denmark and Greenland\Data\Camp Century\Liam\camp_century_2017.csv", opts);
-    clear opts
-
-    t1 = datenum(2017,7,1);
-    [~, ind_end] = min(abs(time_mod-t1));
-
-    f = figure('Visible',vis,'outerposition',[1 1 13 15]);
-ha = tight_subplot(1,2,0.05,[0.18 0.02],[0.2 0.1]);
-
-set(f,'CurrentAxes',ha(1))
-    hold on
-    plot(depth_act_save(:,1),T_ice(:,1)-273.15,'b','Linewidth',2)
-    plot(data1966.depth,data1966.temperature,':b','LineWidth', 2)
-    plot(depth_act_save(:,ind_end),T_ice(:,ind_end)-273.15,'r','Linewidth',2)
-    plot(data2017.depth,data2017.temperature,':r','LineWidth', 2)
-
-%     axis tight square
-    xlim([0 20])
-    ylim([-26 -19])
-    view([90 90])
-    xlabel('Depth (m)')
-    ylabel('Firn temperature (^oC)','Interpreter','tex')
-    box on
-    set(gca,'XMinorTick','on', 'fontsize',18)
-    legendflex({'1963 modelled','1963 observed','2017 modelled',...
-        '2017 observed'},...
-        'ref',gcf,...
-        'anchor',{'e','e'})
-    
-set(f,'CurrentAxes',ha(2))
-    hold on
-    plot(depth_act_save(:,1),T_ice(:,1)-273.15,'b','Linewidth',2)
-    plot(data1966.depth,data1966.temperature,':b','LineWidth', 2)
-    plot(depth_act_save(:,ind_end),T_ice(:,ind_end)-273.15,'r','Linewidth',2)
-    plot(data2017.depth,data2017.temperature,':r','LineWidth', 2)
-    xlim([0 100])
-    ylim([-26 -21])
-    view([90 90])
-    box on
-    set(gca,'XMinorTick','on',...
-        'fontsize',18,...
-        'Units','normalized',...
-        'Position', [0.41 0.2 0.1 0.4],...
-        'Box' ,'on',...
-        'XAxisLocation','top',...
-        'YAxisLocation','left',...
-        'FontSize',10);
-  
-  print(f, sprintf('%s/firn_evolution_CC',OutputFolder), '-dpng')
-    if strcmp(vis,'off')
-        close(f);
-    end
-end
 %% =========== heat flux to infinite subsurface layer ===========
 disp('Plotting heatflux through the bottom layer')
 deltaT = T_ice(end,:)-c.Tdeep_AWS-c.T_0;
@@ -1131,7 +1061,7 @@ plot(time_mod, cumsum(k_eff.*deltaT./deltaz.*c.dt_obs))
 set_monthly_tick(time_mod,gca)
 xlabel('Date')
 ylabel('Cumulated (J/m^2)')
-print(f, sprintf('%s/bot_hf',OutputFolder), '-dpng')
+print(f, sprintf('%s/bot_hf',OutputFolder), '-djpeg')
 
 %% ====================== Compaction 1 ====================
 % if exist('Core_all.mat', 'file') == 2
@@ -1218,7 +1148,7 @@ print(f, sprintf('%s/bot_hf',OutputFolder), '-dpng')
 %         end
 %         legend(lines_leg, items_leg,'Location','West')
 %         title(sitename)
-%         print(f, sprintf('%s/compaction_rate',OutputFolder), '-dpng')
+%         print(f, sprintf('%s/compaction_rate',OutputFolder), '-djpeg')
 %         if strcmp(vis,'off')
 %             close(f);
 %         end
@@ -1319,11 +1249,11 @@ print(f, sprintf('%s/bot_hf',OutputFolder), '-dpng')
 %         i_file = 1;
 %         NameFile = sprintf('%s/compaction_comparison_%i',...
 %             OutputFolder,i_file);
-%         while exist(strcat(NameFile,'.tif'), 'file') == 2
+%         while exist(strcat(NameFile,'.jpg'), 'file') == 2
 %             i_file = i_file + 1;
 %             NameFile = sprintf('%s_%i',NameFile(1:end-2),i_file);
 %         end
-%         print(f,NameFile,'-dtiff');
+%         print(f,NameFile,'-djpeg');
 %     end
 %     end
 % end
@@ -1341,8 +1271,8 @@ set(ha(1),'Position',[0.1 0.345 0.86 0.6])
 set(f,'CurrentAxes',ha(1))
 col = PlotTemp(TT(:,1:step:end),depth_act(:,1:step:end),T_ice(:,1:step:end) - c.T_0,...
     'PlotTherm', 'no',...
-    'PlotIsoTherm', 'yes',...
-    'ShowLegend','yes',...
+    'PlotIsoTherm', 'no',...
+    'ShowLegend','no',...
     'XLabel','Time',...
     'YLabel','Depth (m)',...
     'CLabel','Modelled Temperature (^oC)',...
@@ -1364,10 +1294,6 @@ for i = 1:length(temp)
 end
 set(gca,'Color',[0.95 0.95 0.95],'XTickLabel','');
 xlabel('')
-% print(f, sprintf('%s/T_ice_zmod',OutputFolder), '-dpng')
-% if strcmp(vis,'off')
-%     close(f);
-% end
 
 % temperature at 10 m
 T_deep_obs = zeros(1,size(depth_act_save,2));
@@ -1375,44 +1301,47 @@ for i = 1:size(depth_act_save,2)
     T_deep_obs(i) = interp1(depth_act_save(:,i), T_ice(:,i) - c.T_0, 10,'linear');
 end
 
-% f = figure('Visible',vis);
-
 set(ha(2),'Position',[0.1 0.17 0.775 0.14])
 set(f,'CurrentAxes',ha(2))
 hold on
-plot(time_mod,T_deep_obs,'LineWidth',2)
+h1=plot(time_mod,T_deep_obs,'LineWidth',2);
 lm = fitlm(time_mod,T_deep_obs);
 plot(time_mod, ...
     lm.Coefficients.Estimate(1)+lm.Coefficients.Estimate(2)*time_mod,'k')
 
-annotation(f,'textbox',...
-    [0.11 0.225 0.19 0.071],...
-    'String',{sprintf('Slope: %0.2e deg/a. p-value: %0.2f',...
-    lm.Coefficients.Estimate(2),max(lm.Coefficients.pValue))},...
-    'LineStyle','none','FitBoxToText','on','FontSize',12);
-plot([time_mod(1) time_mod(end)], [c.Tdeep c.Tdeep]-c.T_0,'--k')
+% annotation(f,'textbox',...
+%     [0.11 0.225 0.19 0.071],...
+%     'String',{sprintf('Slope: %0.2e deg/a. p-value: %0.2f',...
+%     lm.Coefficients.Estimate(2),max(lm.Coefficients.pValue))},...
+%     'LineStyle','none','FitBoxToText','on','FontSize',12);
+disp('T10m trend')
+fprintf('Slope: %0.1f deg/a. p-value: %0.2f\n',...
+     lm.Coefficients.Estimate(2)*365, max(lm.Coefficients.pValue))
+% plot([time_mod(1) time_mod(end)], [c.Tdeep c.Tdeep]-c.T_0,'--k')
 axis fill
-if strcmp(c.station,'NUK_K')
-    plot(data_AWS.time, ...
-        data_AWS.IceTemperature8C,'r')
-    ylim([-5 0])
+% if strcmp(c.station,'NUK_K')
+    h2=plot(data_AWS.time, ...
+        data_AWS.IceTemperature8C,'r');
+    ylim([-8 0])
     xlim(time_mod([1 50]))
-end
+% end
+legend([h1 h2],'Modelled','Observed','Location','southeast')
 xlabel('Year')
 ylabel('Temperature at \newline 10 m (deg C)','interpreter','tex')
 % set(gca,'XMinorTick','on','YMinorTick','on')
 datetick('x','yyyy','keepticks')
 xlim([time_mod(1) time_mod(end)])
 set_monthly_tick(time_mod,gca);
-print(f, sprintf('%s/Temp_mod',OutputFolder), '-dtiff')
+print(f, sprintf('%s/Temp_mod',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
 
 %% =================densities =============
 disp('Plotting modelled density')
-ylimit = 20;
-if strcmp(c.station,'NUK_K') || time_mod(end)-time_mod(1) <365
+ylimit = max(-H_surf+H_surf(1))*1.1; 
+
+if  time_mod(end)-time_mod(1) <365
     ylimit = 6;
 end
 if    strcmp(c.station,'Miege')
@@ -1456,68 +1385,12 @@ end
 set(gca,'XTickLabel',temp);
 
 % set(gca,'Color',[0.95 0.95 0.95]);
-print(f, sprintf('%s/rho_1',OutputFolder), '-dpng')
+print(f, sprintf('%s/rho_1',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
 
 %%
-f = figure('Visible', vis);
-col = PlotTemp(TT,depth_weq,rho_all,...
-    'PlotTherm', 'no',...
-    'PlotIsoTherm', 'no',...
-    'ShowLegend','no',...
-    'cmap','parula',...
-    'XLabel','Time',...
-    'YLabel','Depth (m WEQ)',...
-    'CLabel','Density of frozen material (kg/m^3)',...
-    'Range', 200:50:900);
-ylim([-0.1 max(max(depth_weq))])
-col.TickLength=col.TickLength*5;
-temp = col.YTickLabel;
-for i = 1:length(temp)
-    if i/2==floor(i/2)
-        temp(i,:)=' ';
-    end
-end
-set(gca,'Color',[0.95 0.95 0.95]);
-print(f, sprintf('%s/rho_2',OutputFolder), '-dpng')
-if strcmp(vis,'off')
-    close(f);
-end
-
-for i = 1:size(depth_act,1)
-    depth_weq_2(i,:) = depth_weq(i,:) - H_surf_weq';
-end
-f = figure('Visible', vis);
-col = PlotTemp(TT,depth_weq_2,rho_all,...
-    'PlotTherm', 'no',...
-    'PlotIsoTherm', 'no',...
-    'ShowLegend','no',...
-    'cmap','parula',...
-    'XLabel','Time',...
-    'YLabel','Depth (m WEQ)',...
-    'CLabel','Density of frozen material (kg/m^3)',...
-    'Range', 200:50:900);
-if  strcmp(c.station, 'GITS')
-    ylim([-5 ylimit])
-else
-    plot(time_mod,-H_surf+H_surf(1),'LineWidth',2)
-    ylim([min([-H_surf+H_surf(1)])-1 max(max(depth_weq))])
-end
-
-col.TickLength=col.TickLength*5;
-temp = col.YTickLabel;
-for i = 1:length(temp)
-    if i/2==floor(i/2)
-        temp(i,:)=' ';
-    end
-end
-set(gca,'Color',[0.95 0.95 0.95]);
-
-if strcmp(vis,'off')
-    close(f);
-end
 
 f = figure('Visible', vis);
 col = PlotTemp(TT,depth_act,rho,...
@@ -1545,7 +1418,7 @@ for i = 1:length(temp)
     end
 end
 set(gca,'Color',[0.95 0.95 0.95]);
-print(f, sprintf('%s/rho_3',OutputFolder), '-dpng')
+print(f, sprintf('%s/rho_3',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
@@ -1589,7 +1462,7 @@ axis tight
 legend('','Snow - ice transition','Snow surface','Location','NorthEast')
 legend boxoff
 set(gca,'layer','top','LineWidth',1.5,'TickLength',[0.012 0.012])
-print(f, sprintf('%s/snic',OutputFolder), '-dpng')
+print(f, sprintf('%s/snic',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
@@ -1644,7 +1517,7 @@ set(gcf, 'Position', [.25 .25 [29.7 16]-0.5],...
 set(gca,'layer','top','LineWidth',1.5,'TickLength',[0.025 0.025])
 legend('','Snow - ice transition','Snow surface','Location','NorthEast')
 legend boxoff
-print(f, sprintf('%s/rfrz',OutputFolder), '-dpdf')
+print(f, sprintf('%s/rfrz',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
@@ -1677,7 +1550,7 @@ for i = 1:length(temp)
     end
 end
 set(gca,'Color',[0.95 0.95 0.95]);
-print(f, sprintf('%s/dgrain',OutputFolder), '-dpng')
+print(f, sprintf('%s/dgrain',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
@@ -1719,7 +1592,7 @@ end
 % end
 % set(gca,'XTickLabel',temp);
 set(gca,'Color',[0.95 0.95 0.95]);
-print(f, sprintf('%s/slwc',OutputFolder), '-dpng')
+print(f, sprintf('%s/slwc',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
@@ -1762,7 +1635,7 @@ end
 % end
 % set(gca,'XTickLabel',temp);
 set(gca,'Color',[0.95 0.95 0.95]);
-print(f, sprintf('%s/saturation',OutputFolder), '-dpng')
+print(f, sprintf('%s/saturation',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
@@ -1794,154 +1667,154 @@ for i = 1:length(temp)
     end
 end
 set(gca,'Color',[0.95 0.95 0.95]);
-print(f, sprintf('%s/snowc',OutputFolder), '-dpng')
+print(f, sprintf('%s/snowc',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
 
 %% ======= Subsurface temperature =================
 disp('Plotting observed subsurface temperatures')
-if  ~strcmp(c.station, 'GITS')
+if  ~strcmp(c.station, 'GITS')&&~strcmp(c.station, 'MIT')
 
-T_subsurf_mod = zeros(size(depth_obs));
-%interpolating modelled at observed depth
-depth_therm_2 = depth_obs;
-for i = 1:size(depth_obs,1)
-    depth_therm_2(i,:) = depth_therm_2(i,:) - Surface_Height';
-    ind_therm_out = find(depth_therm_2(i,:)<0,1,'first');
-    T_obs(i,ind_therm_out:end) = NaN;
-%         depth_obs(i,ind_therm_out:end) = NaN;
-    %     depth_therm_2(i,ind_therm_out:end) = 0;
-end
+    T_subsurf_mod = zeros(size(depth_obs));
+    %interpolating modelled at observed depth
+    depth_therm_2 = depth_obs;
+    for i = 1:size(depth_obs,1)
+        depth_therm_2(i,:) = depth_therm_2(i,:) - Surface_Height';
+        ind_therm_out = find(depth_therm_2(i,:)<0,1,'first');
+        T_obs(i,ind_therm_out:end) = NaN;
+    %         depth_obs(i,ind_therm_out:end) = NaN;
+        %     depth_therm_2(i,ind_therm_out:end) = 0;
+    end
 
-for j = 1:length(time_mod)
-    ind = and(~isnan(depth_act_save(:,j)),~isnan(T_ice(:,j)));
-    T_subsurf_mod(:,j) = interp1( [0; depth_act_save(ind,j)],...
-        [Tsurf(j)+c.T_0; T_ice(ind,j)],  depth_obs(:,j))-c.T_0;
-end
+    for j = 1:length(time_mod)
+        ind = and(~isnan(depth_act_save(:,j)),~isnan(T_ice(:,j)));
+        T_subsurf_mod(:,j) = interp1( [0; depth_act_save(ind,j)],...
+            [Tsurf(j)+c.T_0; T_ice(ind,j)],  depth_obs(:,j))-c.T_0;
+    end
 
-if c.ConductionModel == 1
-    Tsurf_diff = zeros(size(Tsurf));
-    T_diff = T_obs-T_subsurf_mod;
-    title_text ='Excess heat observed (^o C)';
-else
-    T_diff = T_subsurf_mod - T_obs;
+    if c.ConductionModel == 1
+        Tsurf_diff = zeros(size(Tsurf));
+        T_diff = T_obs-T_subsurf_mod;
+        title_text ='Excess heat observed (^o C)';
+    else
+        T_diff = T_subsurf_mod - T_obs;
+        Tsurf_diff = (Tsurf-Tsurf_obs+c.T_0);
+        title_text ='Modelled - observed temperature (^o C)';
+    end
+
+    f = figure('Visible', vis);
+    f.OuterPosition = ([0.9 0.9 [21 29.7]-0.5]);
+    ha = tight_subplot(3,1,0.022,[0.15, 0.04],[0.15 0.15]);
+    set(f,'CurrentAxes',ha(1))
+
+    col1 = PlotTemp(TT_obs,depth_therm_2,T_subsurf_mod,...
+        'PlotTherm', 'yes',...
+        'ShowLegend','no',...
+        'PlotIsoTherm', 'no',...
+        'cmap','jet',...
+        'XLabel',' ',...
+        'YLabel','Depth (m)',...
+        'CLabel','Interpolated modelled temperature (^o C)',...
+        'Range', -15:1:0);
+    hold on
+    plot(time_mod, -Surface_Height,'r','LineWidth',2)
+    xlim([time_mod(1), time_mod(end)])
+    ylim([min(-Surface_Height)-0.1 ylimit])
+    col1.TickLength=col1.TickLength*5;
+    for i = 1:length(col1.YTickLabel)
+        if i/2==floor(i/2)
+            col1.YTickLabel(i,:)=' ';
+        end
+    end
+    ylabel(col1,'Interpolated modelled\newline     temperature (deg C)','Interpreter','tex')
+    set(gca,'Color',[0.7 0.7 0.7],'XTickLabel','')
+    % Subsurface temperature bias
+    T_diff = T_subsurf_mod - T_obs+c.T_0;
     Tsurf_diff = (Tsurf-Tsurf_obs+c.T_0);
     title_text ='Modelled - observed temperature (^o C)';
-end
 
-f = figure('Visible', vis);
-f.OuterPosition = ([0.9 0.9 [21 29.7]-0.5]);
-ha = tight_subplot(3,1,0.022,[0.15, 0.04],[0.15 0.15]);
-set(f,'CurrentAxes',ha(1))
-
-col1 = PlotTemp(TT_obs,depth_therm_2,T_subsurf_mod,...
-    'PlotTherm', 'yes',...
-    'ShowLegend','no',...
-    'PlotIsoTherm', 'no',...
-    'cmap','jet',...
-    'XLabel',' ',...
-    'YLabel','Depth (m)',...
-    'CLabel','Interpolated modelled temperature (^o C)',...
-    'Range', -15:1:0);
-hold on
-plot(time_mod, -Surface_Height,'r','LineWidth',2)
-xlim([time_mod(1), time_mod(end)])
-ylim([min(-Surface_Height)-0.1 ylimit])
-col1.TickLength=col1.TickLength*5;
-for i = 1:length(col1.YTickLabel)
-    if i/2==floor(i/2)
-        col1.YTickLabel(i,:)=' ';
+    %         f = figure('Visible', 'on');
+    %     ha = tight_subplot(2,1,0.035,[0.1, 0.02],0.09);
+    set(f,'CurrentAxes',ha(2))
+    hold off
+    col2 = PlotTemp(TT_obs,depth_therm_2,T_obs-c.T_0,...
+        'PlotTherm', 'yes',...
+        'PlotIsoTherm', 'no',...
+        'ShowLegend','no',...
+        'cmap','jet',...
+        'XLabel',' ',...
+        'YLabel','Depth (m)',...
+        'Range', -15:1:0);
+    hold on
+    plot(time_mod, -Surface_Height,'r','LineWidth',2)
+    xlim([time_mod(1), time_mod(end)])
+    ylim([min(-Surface_Height)-0.1 ylimit])
+    col2.TickLength=col2.TickLength*5;
+    for i = 1:length(col2.YTickLabel)
+        if i/2==floor(i/2)
+            col2.YTickLabel(i,:)=' ';
+        end
     end
-end
-ylabel(col1,'Interpolated modelled\newline     temperature (deg C)','Interpreter','tex')
-set(gca,'Color',[0.7 0.7 0.7],'XTickLabel','')
-% Subsurface temperature bias
-T_diff = T_subsurf_mod - T_obs+c.T_0;
-Tsurf_diff = (Tsurf-Tsurf_obs+c.T_0);
-title_text ='Modelled - observed temperature (^o C)';
+    ylabel(col2,'         Observed \newline temperature (deg C)','Interpreter','tex')
 
-%         f = figure('Visible', 'on');
-%     ha = tight_subplot(2,1,0.035,[0.1, 0.02],0.09);
-set(f,'CurrentAxes',ha(2))
-hold off
-col2 = PlotTemp(TT_obs,depth_therm_2,T_obs-c.T_0,...
-    'PlotTherm', 'yes',...
-    'PlotIsoTherm', 'no',...
-    'ShowLegend','no',...
-    'cmap','jet',...
-    'XLabel',' ',...
-    'YLabel','Depth (m)',...
-    'Range', -15:1:0);
-hold on
-plot(time_mod, -Surface_Height,'r','LineWidth',2)
-xlim([time_mod(1), time_mod(end)])
-ylim([min(-Surface_Height)-0.1 ylimit])
-col2.TickLength=col2.TickLength*5;
-for i = 1:length(col2.YTickLabel)
-    if i/2==floor(i/2)
-        col2.YTickLabel(i,:)=' ';
+    set(gca,'XTickLabel','') %,'Color',[0.95 0.95 0.95])
+    set(gca,'Color',[0.7 0.7 0.7])
+
+    set(f,'CurrentAxes',ha(3))
+    col3 = PlotTemp(TT_obs,depth_therm_2,T_diff,...
+        'PlotTherm', 'yes',...
+        'PlotIsoTherm', 'no',...
+        'ShowLegend','no',...
+        'cmap','BWR_cmap',...
+        'XLabel','Year',...
+        'YLabel','Depth (m)',...
+        'CLabel',title_text,...
+        'Range', -11:2:11); %zeros(1,length(Tsurf)));
+    hold on
+    plot(time_mod, -Surface_Height,'r','LineWidth',2)
+    ylim([min(-Surface_Height)-0.1 ylimit])
+    xlim([time_mod(1), time_mod(end)])
+    col3.TickLength=col3.TickLength*5;
+
+    clim = col1.YTick;
+    colormap(ha(1),'jet')
+    colormap(ha(2),'jet')
+    colormap(col1,'jet')
+    colormap(col2,'jet')
+    col1.Children.CDataMapping='scaled';
+
+    %     colormap(ha(2),BWR_cmap)
+    for i = 1:length(col3.YTickLabel)
+        if i/2~=floor(i/2)
+            col3.YTickLabel(i,:)=' ';
+        end
     end
-end
-ylabel(col2,'         Observed \newline temperature (deg C)','Interpreter','tex')
+    ylabel(col3,'Modelled - observed \newline temperature (deg C)','Interpreter','tex')
+    set_monthly_tick(time_mod);
 
-set(gca,'XTickLabel','') %,'Color',[0.95 0.95 0.95])
-set(gca,'Color',[0.7 0.7 0.7])
+    set(gca,'Color',[0.7 0.7 0.7],'XTickLabelRotation',20)
+    orient(f,'portrait')
+    f.PaperSize = [29.7 21];
+    f.PaperPosition=f.OuterPosition;
 
-set(f,'CurrentAxes',ha(3))
-col3 = PlotTemp(TT_obs,depth_therm_2,T_diff,...
-    'PlotTherm', 'yes',...
-    'PlotIsoTherm', 'no',...
-    'ShowLegend','no',...
-    'cmap','BWR_cmap',...
-    'XLabel','Year',...
-    'YLabel','Depth (m)',...
-    'CLabel',title_text,...
-    'Range', -11:2:11); %zeros(1,length(Tsurf)));
-hold on
-plot(time_mod, -Surface_Height,'r','LineWidth',2)
-ylim([min(-Surface_Height)-0.1 ylimit])
-xlim([time_mod(1), time_mod(end)])
-col3.TickLength=col3.TickLength*5;
-
-clim = col1.YTick;
-colormap(ha(1),'jet')
-colormap(ha(2),'jet')
-colormap(col1,'jet')
-colormap(col2,'jet')
-col1.Children.CDataMapping='scaled';
-
-%     colormap(ha(2),BWR_cmap)
-for i = 1:length(col3.YTickLabel)
-    if i/2~=floor(i/2)
-        col3.YTickLabel(i,:)=' ';
+    print(f, sprintf('%s/T_ice_diff',OutputFolder), '-djpeg')
+    if strcmp(vis,'off')
+        close(f);
     end
-end
-ylabel(col3,'Modelled - observed \newline temperature (deg C)','Interpreter','tex')
-set_monthly_tick(time_mod);
 
-set(gca,'Color',[0.7 0.7 0.7],'XTickLabelRotation',20)
-orient(f,'portrait')
-f.PaperSize = [29.7 21];
-f.PaperPosition=f.OuterPosition;
-
-print(f, sprintf('%s/T_ice_diff',OutputFolder), '-dpng')
-if strcmp(vis,'off')
-    close(f);
-end
-
-%% ============== observed 10 m firn temperature ==============================
-% if time_mod(end)-time_mod(1) >365
-switch c.station
-    case 'Miege'
-        depth_deep = 25;
-    case 'KAN-U'
-        depth_deep = 5;    
-    case 'DYE-2_HQ'
-        depth_deep = 9;
-    otherwise
-        depth_deep= 10;
-end
+    %% ============== observed 10 m firn temperature ==============================
+    % if time_mod(end)-time_mod(1) >365
+    switch c.station
+        case 'Miege'
+            depth_deep = 25;
+        case 'KAN-U'
+            depth_deep = 5;    
+        case 'DYE-2_HQ'
+            depth_deep = 9;
+        otherwise
+            depth_deep= 10;
+    end
 
 
     TT_obs= repmat(time_mod',size(depth_obs,1),1);
@@ -2042,7 +1915,7 @@ end
         plot(time_mod, depth_sorted(i,:))
     end
     axis tight
-  set_monthly_tick(time_mod);
+    set_monthly_tick(time_mod);
         xlim(time_mod([1 end]))
         set(gca,'Ydir','reverse')
         ylabel('Depth below the\newline      surface (m)','Interpreter','tex')
@@ -2055,7 +1928,7 @@ end
         plot(time_mod([1 end]), [depth_deep depth_deep],'--k','LineWidth',1.5)
         set(gca,'XTickLabel',[])
 
-        print(f, sprintf('%s/T10m_obs',OutputFolder), '-dpng')
+        print(f, sprintf('%s/T10m_obs',OutputFolder), '-djpeg')
         if strcmp(vis,'off')
             close(f);
         end
@@ -2078,12 +1951,11 @@ end
             nanmean(T_deep_avg-273.15),...
             lm.Coefficients.Estimate(2)*10,...
             lm.Rsquared.Ordinary, max(lm.Coefficients.pValue)))
-        print(f, sprintf('%s/T10m_obs_lm',OutputFolder), '-dpng')
+        print(f, sprintf('%s/T10m_obs_lm',OutputFolder), '-djpeg')
         if strcmp(vis,'off')
             close(f);
         end
     end
-% end
 end
 %%  ================= Compaction =========================
 disp('Plotting compaction')
@@ -2111,7 +1983,7 @@ xlabel('Time')
 ylabel(ax(1),'Compaction rate (mm/day)')
 ylabel(ax(2),'Surface lowering due to compaction (m)')
 set(ax(1),'YLim',[0 3],'YTick',0:3,'YTickLabel',0:3)
-print(f, sprintf('%s/Comp',OutputFolder), '-dtiff')
+print(f, sprintf('%s/Comp',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
@@ -2124,7 +1996,7 @@ SEB_hour = table(time_mod,SHF,LHF,SRin - SRout,LRin - LRout_mdl,...
     'VariableNames',{'time','SHF','LHF','SRnet','LRnet','RainHF','GF','MeltEnergy',...
     'Melt_mweq'});
 
-SEB_JJA = AvgTableJJA(SEB_hour,'sum');
+SEB_JJA = AvgTableJJA(SEB_hour,@sum);
 
 if time_mod(end)-time_mod(1) >365
     SEB_wateryear = AvgTable(SEB_hour,'water-yearly');
@@ -2158,7 +2030,7 @@ if time_mod(end)-time_mod(1) >365
 axis tight
 box on
 set(gca,'layer','top')
-print(f, sprintf('%s/SEB_overview',OutputFolder), '-dtiff')
+print(f, sprintf('%s/SEB_overview',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
@@ -2217,11 +2089,10 @@ end
 % i2=find(DV(:,1)==2013,1,'last');
 % xlim([time_mod(i1) time_mod(i2)])
 set(gca,'layer','top')
-print(f, sprintf('%s/SEB',OutputFolder), '-dtiff')
+print(f, sprintf('%s/SEB',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
-
 
 %%  Comp with RACMO
 file_RACMO = 'C:\Users\bav\OneDrive - Geological survey of Denmark and Greenland\Code\AWS_Processing\Input\Secondary data\RACMO_3h_AWS_sites.nc';
@@ -2234,8 +2105,8 @@ time_RACMO(time_RACMO<SEB_hour.time(1))=[];
 RACMO = table();
 RACMO.time = time_RACMO;
 RACMO.melt = melt_RACMO;
-RACMO_yr = AvgTable(RACMO,'yearly','sum');
-RACMO_yr = AvgTable(RACMO,'yearly','sum');
+RACMO_yr = AvgTable(RACMO,'yearly',@sum);
+RACMO_yr = AvgTable(RACMO,'yearly',@sum);
 
 figure
 stairs(RACMO_yr.time,RACMO_yr.melt*3,'LineWidth',1.5)
@@ -2256,7 +2127,6 @@ xlabel('RACMO2.3p2')
 ylabel('Vandecrux et al., 2020')
 title('Simulated annual melt at Dye-2 (mm w.e.)')
 axis tight
-
 
 %% ================ SEB 2 =========================
 f = figure('Visible', vis);
@@ -2341,18 +2211,19 @@ for i = [4 5 2 3 1 6]
         ylabel('Cumulated monthly energy flux \newline to the surface (MJ/m^2)','Interpreter','tex')
     end
 end
-print(f, sprintf('%s/SEB_2',OutputFolder), '-dtiff')
+print(f, sprintf('%s/SEB_2',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
 
 %% ================ SMB 1 =======================================
 disp('Plotting SMB')
-runoffhour = -[runoff(1); runoff(2:end)-runoff(1:end-1)] ;
-SMB = snowfall+rainfall+sublimation+runoffhour;
+% runoffhour = -[runoff(1); runoff(2:end)-runoff(1:end-1)] ;
+runoffhour=-runoff;
+SMB = snowfall+rainfall+sublimation_mweq+runoffhour;
 time = time_mod;
 
-SMB_hour = table(time, snowfall, rainfall, sublimation, runoffhour,SMB);
+SMB_hour = table(time, snowfall, rainfall, sublimation_mweq, runoffhour,SMB);
 SMB_hour.Properties.VariableNames{5} = 'runoff';
 SMB_month = AvgTable(SMB_hour,'monthly');
 
@@ -2383,7 +2254,7 @@ ylabel('Cumulated SMB (mm w.eq.)')
 set_monthly_tick(time_mod)
 axis tight
 set(gca,'YAxisLocation','right')
-print(f, sprintf('%s/SMB2',OutputFolder), '-dtiff')
+print(f, sprintf('%s/SMB2',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
 end
@@ -2418,7 +2289,7 @@ if time_mod(end)-time_mod(1) >365
     ylabel('Mass balance (m_weq)')
     xlabel('Date')
     
-    print(f, sprintf('%s/SMB3',OutputFolder), '-dtiff')
+    print(f, sprintf('%s/SMB3',OutputFolder), '-djpeg')
     if strcmp(vis,'off')
         close(f);
     end
@@ -2545,7 +2416,7 @@ if time_mod(end)-time_mod(1) >365
         set (gca, 'XTick', [time_mod(1), ...
             datenum(DV(1,1)+1:DV(end,1),1,1)]);
         datetick('x','yyyy','keepticks')
-        set_monthly_tick(temp);
+        set_monthly_tick(SMB_wateryear.time);
     else
         set (gca, 'XTick', ...
             [time_mod(1), datenum(DV(1,1),temp.Month(1) +1:temp.Month(1)+12,1)]);
@@ -2593,7 +2464,7 @@ if time_mod(end)-time_mod(1) >365
     % else
     % legend(h,'Melt','Liquid storage','Refreezing', 'Location','NorthWest')
     % end
-    print(f, sprintf('%s/SMB',OutputFolder), '-dtiff')
+    print(f, sprintf('%s/SMB',OutputFolder), '-djpeg')
     if strcmp(vis,'off')
         close(f);
     end
@@ -2602,12 +2473,12 @@ else
     SEB_year = table;
 end
 
+
 %% ============= Densification ========================
 disp('Plotting densification drivers')
     DensificationStudy(time_mod,depth_act_save,rho_all,...
         compaction,thickness_act,meltflux,sublimation,snowfall,depth_weq,...
         snic, snowc,SEB_year,SMB_wateryear, vis, c)
-
 
 %% ================ ploting melt ===================
 disp('Plotting melt evolution')
@@ -2635,13 +2506,11 @@ if time_mod(end)-time_mod(1) >365
     box on
     axis fill square
     set(gca,'XMinorTick','on','YMinorTick','on')
-    print(f, sprintf('%s/melt',OutputFolder), '-dtiff')
+    print(f, sprintf('%s/melt',OutputFolder), '-djpeg')
     if strcmp(vis,'off')
         close(f);
     end
 end
-
-
 
 %% ==================== validation of accumulation =======================
 if time_mod(end)-time_mod(1) >365
@@ -2834,10 +2703,10 @@ if time_mod(end)-time_mod(1) >365
         ylabel('Surface Mass Balance (m w.eq.)')
         xlim([1970 2014])
         legend({name_core{[1 2 5]},'derived from station'},'Location','EastOutside')
-        print(f, sprintf('%s/accum_2',OutputFolder), '-dtiff')
+        print(f, sprintf('%s/accum_2',OutputFolder), '-djpeg')
         
         
-        print(f, sprintf('%s/accum',OutputFolder), '-dtiff')
+        print(f, sprintf('%s/accum',OutputFolder), '-djpeg')
         if strcmp(vis,'off')
             close(f);
         end
@@ -2928,6 +2797,6 @@ ppos(3:4) = pos(3:4);
 % pos(1:2) = [1 1];
 set(gcf,'paperposition',ppos);
 set(gcf,'units',unis);
-print(f, sprintf('%s/Accumulation_val',OutputFolder), '-dpng','-r300')
+print(f, sprintf('%s/Accumulation_val',OutputFolder), '-djpeg','-r300')
 
 end

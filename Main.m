@@ -14,7 +14,7 @@ addpath(genpath('Input'),genpath('Output'))
 % possible to overwrite the default value by defining them again in the
 % "param{kk}" struct hereunder.
 
-station_list =   {'KAN_M'};
+station_list =   {'MIT'};
 % station_list = PROMICE_dir; %
 RCM_list = {'RACMO'};
 
@@ -81,16 +81,59 @@ for i =1:length(station_list)
 %         '\\Weather data\\Temperature tracking\\data_%s_combined_hour.txt'],param{kk}.station);
 
     switch param{kk}.station
-        case 'KAN_M'
-            param{kk}.InputAWSFile = 'Input/Weather data/data_KAN_M_combined_hour.txt';
+        case 'CP1'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/CP1/data_CP1_combined_hour.txt';
+        case 'DYE-2'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/DYE-2/data_DYE-2_combined_hour.txt';
+        case {'DYE-2_long' 'Dye-2_long'}
+            param{kk}.InputAWSFile = 'data_DYE-2_1998-2015.txt';
+        case {'DYE-2_HQ' 'Dye-2_16'}
+            param{kk}.InputAWSFile = 'data_DYE-2_Samira_hour.txt';
+
+        case 'Summit'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/Summit/data_Summit_combined_hour.txt';
+        case 'NASA-SE'
+    %         param{kk}.InputAWSFile = 'data_NASA-SE_1998-2015.txt';
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/NASA-SE/data_NASA-SE_combined_hour.txt';
+        case 'NASA-E'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/NASA-E/data_NASA-E_combined_hour.txt';
+        case 'NASA-U'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/NASA-U/data_NASA-U_combined_hour.txt';
+        case 'SouthDome'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/SouthDome/data_SouthDome_combined_hour.txt';
+        case 'TUNU-N'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/TUNU-N/data_TUNU-N_combined_hour.txt'; 
+      case 'Saddle'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/Saddle/data_Saddle_combined_hour.txt'; 
+      case 'NGRIP'
+            param{kk}.InputAWSFile = '../AWS_Processing/Output/NGRIP/data_NGRIP_combined_hour.txt'; 
+      case 'GITS'
+            param{kk}.InputAWSFile = ['../AWS_Processing/Output/GITS_',...
+                model_version, '/data_GITS_combined_hour.txt'];
+            param{kk}.OutputRoot = 'C:\Data_save\CC';
+
     % ======== other stations =================
     %     case {'KAN-U' 'KAN_U'}
     % %         param{kk}.InputAWSFile = 'data_KAN_U_combined_hour.txt';
     %         param{kk}.InputAWSFile = 'data_KAN_U_2012.txt';
     %         param{kk}.InputAWSFile = '../AWS_Processing/Output/KAN_U/data_KAN_U_combined_hour.txt';
-
+        case {'Miege' 'FA'}
+            param{kk}.InputAWSFile = 'data_Miege_combined_hour.txt';
+%         case PROMICE_dir
+%             param{kk}.InputAWSFile = ['../AWS_Processing/Output/PROMICE/',...
+%                 param{kk}.station, '_RACMO/data_',...
+%                 param{kk}.station, '_combined_hour.txt'];
+%             param{kk}.shallow_firn_lim = 3;
+%             param{kk}.deep_firn_lim = 5;
+%             param{kk}.min_tot_thick = 15;
+% 
+%             param{kk}.lim_new_lay = 0.005;
+%             param{kk}.z_max = 20;
+%             param{kk}.dz_ice = param{kk}.z_max/NumLayer;
         otherwise
-            disp('Missing data file for the requested station.');
+            param{kk}.InputAWSFile = ...
+                ['../AWS_Processing/Output/',param{kk}.station, '_',...
+                model_version, '/data_',param{kk}.station, '_combined_hour.txt'];
     end
 
 % When you add sites

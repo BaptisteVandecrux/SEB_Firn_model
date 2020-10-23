@@ -13,8 +13,7 @@ set(0, 'DefaultFigurePosition', [.25 .25 [29.7 25]-0.5]);
 addpath(genpath('.\lib'))
 addpath(genpath('Input'),genpath('Output'))
 
-% WorkingFolder = './Output/Preliminary runs';
-WorkingFolder = './Output/Corrected';
+WorkingFolder = 'C:\Data_save\2020 JoG data\Corrected';
 mkdir(sprintf('%s/Plots',WorkingFolder));
 OutputFolder = sprintf('%s/Plots',WorkingFolder);
 list = dir(WorkingFolder);
@@ -76,7 +75,7 @@ depth_obs_save = depth_obs_s;
 
 %% Output surface netcdf files
 WriteData = 0;
-if WriteData == 1;
+if WriteData == 1
     for ii = 1:9
         load(strcat(folder_list{ii},'/run_param.mat'))
 

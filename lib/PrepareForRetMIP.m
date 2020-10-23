@@ -4,7 +4,7 @@ function [data_AWS,Tsurf_obs, pres, T1, T2, z_T1, z_T2, ...
     o_WS1, o_WS2, SRin, SRout, LRin, LRout, c] = PrepareForRetMIP(c)
 
 % for the RetMIP forcing, we need to by-pass the weather data forcing
-    % and use the presrcibed melt and skin temperature directly
+    % and use the prescribed melt and skin temperature directly
     filename = sprintf('./RetMIP/Input files/surface/RetMIP_%s.csv',c.station);
     delimiter = ';';
     startRow = 2;
