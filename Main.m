@@ -77,48 +77,31 @@ for kk = 1:length(RCM_list)
         
 for i =1:length(station_list)
     param{kk}.station =  station_list{i}; 
-%     param{kk}.InputAWSFile = sprintf(['U:\\Storage Baptiste\\Code\\FirnModel_bv_v1.3\\Input' ...
-%         '\\Weather data\\Temperature tracking\\data_%s_combined_hour.txt'],param{kk}.station);
 
     switch param{kk}.station
-        case 'CP1'
-            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/CP1/data_CP1_combined_hour.txt';
-        case 'DYE-2'
-            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/DYE-2/data_DYE-2_combined_hour.txt';
+        % stations considered for the JoG2020 paper
+        case {'CP1', 'DYE-2', 'Summit', 'NASA-SE', 'NASA-E','NASA-U',...
+                'SouthDome', 'TUNU-N', 'Saddle', 'NGRIP'}
+            param{kk}.InputAWSFile = ['../AWS_Processing/Output/Corrected/',...
+                                        param{kk}.station,...
+                                        '/data_', param{kk}.station, ...
+                                        '_combined_hour.txt'];
+        % stations considered for the RetMIP study 
         case {'DYE-2_long' 'Dye-2_long'}
             param{kk}.InputAWSFile = 'data_DYE-2_1998-2015.txt';
         case {'DYE-2_HQ' 'Dye-2_16'}
             param{kk}.InputAWSFile = 'data_DYE-2_Samira_hour.txt';
-
-        case 'Summit'
-            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/Summit/data_Summit_combined_hour.txt';
-        case 'NASA-SE'
-    %         param{kk}.InputAWSFile = 'data_NASA-SE_1998-2015.txt';
-            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/NASA-SE/data_NASA-SE_combined_hour.txt';
-        case 'NASA-E'
-            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/NASA-E/data_NASA-E_combined_hour.txt';
-        case 'NASA-U'
-            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/NASA-U/data_NASA-U_combined_hour.txt';
-        case 'SouthDome'
-            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/SouthDome/data_SouthDome_combined_hour.txt';
-        case 'TUNU-N'
-            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/TUNU-N/data_TUNU-N_combined_hour.txt'; 
-      case 'Saddle'
-            param{kk}.InputAWSFile = '../AWS_Processing/Output/Corrected/Saddle/data_Saddle_combined_hour.txt'; 
-      case 'NGRIP'
-            param{kk}.InputAWSFile = '../AWS_Processing/Output/NGRIP/data_NGRIP_combined_hour.txt'; 
-      case 'GITS'
+        case {'KAN-U' 'KAN_U'}
+            param{kk}.InputAWSFile = 'data_KAN_U_combined_hour.txt';
+        case {'Miege' 'FA'}
+            param{kk}.InputAWSFile = 'data_Miege_combined_hour.txt';
+            
+        % Camp Century
+        case 'GITS'
             param{kk}.InputAWSFile = ['../AWS_Processing/Output/GITS_',...
                 model_version, '/data_GITS_combined_hour.txt'];
             param{kk}.OutputRoot = 'C:\Data_save\CC';
 
-    % ======== other stations =================
-    %     case {'KAN-U' 'KAN_U'}
-    % %         param{kk}.InputAWSFile = 'data_KAN_U_combined_hour.txt';
-    %         param{kk}.InputAWSFile = 'data_KAN_U_2012.txt';
-    %         param{kk}.InputAWSFile = '../AWS_Processing/Output/KAN_U/data_KAN_U_combined_hour.txt';
-        case {'Miege' 'FA'}
-            param{kk}.InputAWSFile = 'data_Miege_combined_hour.txt';
 %         case PROMICE_dir
 %             param{kk}.InputAWSFile = ['../AWS_Processing/Output/PROMICE/',...
 %                 param{kk}.station, '_RACMO/data_',...

@@ -77,17 +77,11 @@ for kk = 1:length(RCM_list)
         
 for i =1:length(station_list)
     param{kk}.station =  station_list{i}; 
-%     param{kk}.InputAWSFile = sprintf(['U:\\Storage Baptiste\\Code\\FirnModel_bv_v1.3\\Input' ...
-%         '\\Weather data\\Temperature tracking\\data_%s_combined_hour.txt'],param{kk}.station);
 
     switch param{kk}.station
         case 'KAN_M'
             param{kk}.InputAWSFile = 'Input/Weather data/data_KAN_M_combined_hour.txt';
     % ======== other stations =================
-    %     case {'KAN-U' 'KAN_U'}
-    % %         param{kk}.InputAWSFile = 'data_KAN_U_combined_hour.txt';
-    %         param{kk}.InputAWSFile = 'data_KAN_U_2012.txt';
-    %         param{kk}.InputAWSFile = '../AWS_Processing/Output/KAN_U/data_KAN_U_combined_hour.txt';
 
         otherwise
             disp('Missing data file for the requested station.');
