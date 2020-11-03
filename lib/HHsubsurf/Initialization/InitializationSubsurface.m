@@ -36,6 +36,8 @@ if c.retmip == 0
             filename = './Input/Initial state/density/RetMIP_density_Dye-2 2016.csv';
         case 'NUK_K'
             filename = './Input/Initial state/density/DensityProfile_NUK_K.csv';
+        case 'EGP'
+            filename = './Input/Initial state/density/DensityProfile_EGP_2012.csv';
         case 'KAN-U'
     %         if c.year(1) == 2012
                 filename = './Input/Initial state/density/RetMIP_density_KAN-U 2012.csv';
@@ -285,7 +287,7 @@ if c.retmip == 0
     
         otherwise
             disp('Using thermistor data')
-            for i = 1:24*7 %we look at the week following the installation
+            for i = 1:24*14 %we look at the week following the installation
                 if sum(~isnan(T_obs(i,:)))>1
                     if sum(~isnan(T_obs(i,:)))<3
                         continue

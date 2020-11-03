@@ -190,7 +190,7 @@ cc10accum = flipud(cc10accum);
 % figure
 % stairs(cc10accum.year, cc10accum.b_mweq)
 
-writetable(cc10accum,'Input/Camp Century/CC10_accum.csv','Delimiter',';')
+writetable(cc10accum,'Input/Extra/Camp Century/CC10_accum.csv','Delimiter',';')
 
 clearvars h
 file_list =     {'CC10_accum.csv'...
@@ -214,7 +214,7 @@ for i = 1:length(file_list)
     opts.VariableTypes = ["double", "double"];
     opts.ExtraColumnsRule = "ignore";
     opts.EmptyLineRule = "read";
-    accum{i} = readtable(['Input/Camp Century/' file_list{i}], opts);
+    accum{i} = readtable(['Input/Extra/Camp Century/' file_list{i}], opts);
     clear opts
     if i>1
         accum{i}.b_mweq=accum{i}.b_mweq;
@@ -446,11 +446,11 @@ LabelList =  { {'Mean sensible', 'heat flux (W / m^2)'},...
 NameFile = sprintf('%s/_4-SEB',OutputFolder);
 PlotWeather_CC(data_surf_yr,vis,VarList,LabelList,NameFile,model_list2);
 
-VarList = {'snowfall','rainfall','sublimation_mweq','SMB_mweq'};
+VarList = {'snowfall','sublimation_mweq','rainfall','SMB_mweq'};
 LabelList =  { {'Total annual', 'snowfall (mm w.e.)'},...
-    {'Total annual', 'rainfall (mm w.e.)'},...
     {'Total annual', 'sublimation (mm w.e.)'} ,...
-    {'Annual surface', 'mass balance (mm w.e.)'} };
+    {'Total annual', 'rainfall (mm w.e.)'},...
+    {'Annual surface mass', 'balance (mm w.e.)'} };
 if sum(data_surf{4}. runoff)>0.001
     VarList{length(VarList)+1} = 'runoff';
     LabelList{length(LabelList)+1} = 'Total annual \newline runoff (mm w.e.)';
@@ -458,8 +458,15 @@ end
 
 NameFile = sprintf('%s/_5-SMB',OutputFolder);
 [f,ha] = PlotWeather_CC(data_surf_yr,vis,VarList,LabelList,NameFile,model_list2,1000);
-
+ha(3).Visible = 'off';
+cla(ha(3))
+ha(4).Position(1) = ha(1).Position(1);
+ha(4).Position(3) = 0.8;
+ha(4).YAxisLocation='left';
 set(f,'CurrentAxes',ha(4))
+ha(4).Children(1).String='C';
+ha(4).Children(1).Position(2)=620;
+
 sh1 = stairs(datenum(accum_all.year,1,1),accum_all.max*1000,'w','LineStyle','none');
 sh2 = stairs(datenum(accum_all.year,1,1),accum_all.min*1000,'w','LineStyle','none');
 x = [sh1.XData(1),repelem(sh1.XData(2:end),2)];
@@ -467,21 +474,23 @@ y1 = [repelem(sh1.YData(1:end-1),2),sh1.YData(end)];
 y2 = [repelem(sh2.YData(1:end-1),2),sh2.YData(end)];
 x2 = [x, fliplr(x)];
 inBetween = [y1, fliplr(y2)];
-% h_d =  plot(NaN,NaN,'w');
-% h_fill =  fill(x2, inBetween, ...
-%     RGB('light gray'),...
-%     'LineStyle','none',...
-%     'FaceAlpha',0.7);
+h_d =  plot(NaN,NaN,'w');
+h_fill =  fill(x2, inBetween, ...
+    RGB('light gray'),...
+    'LineStyle','none',...
+    'FaceAlpha',0.7);
 h_med = stairs(datenum(accum_all.year,1,1),accum_all.median*1000,...
     'k','LineWidth',2);
+uistack(sh1,'bottom')
+uistack(sh2,'bottom')
+uistack(h_fill,'bottom')
+ylim([80 710])
 
-legend([h_med],...
-    'observed',...
-    'Location','northeast',...
-    'FontSize',10);
-ylim([80 690])
-h_all = get(ha(4),'children');
-h_all(4).Position(2) = 610;
+legendflex([h_fill, h_med],...
+    {'min/max enveloppe','median'},...
+    'title','Firn core observations',...
+    'buffer',[-200 -1],...
+    'FontSize',10,'ncol',2);
 print(f,NameFile,'-djpeg'); 
 
 %% Comparing melt with racmo and mar
@@ -517,6 +526,10 @@ legend('RACMO-adjusted',  'CanESM-adjusted RCP2.6',...
 % addpath(genpath('../AWS_Processing/'))
 [data_AWS_GITS] = ImportGCnetData('GITS','yes');
 [data_AWS_CEN] = ImportPROMICEData('CEN');
+
+ind = data_AWS_CEN.time<=datenum('31-Dec-2019 21:00:00');
+data_AWS_CEN=data_AWS_CEN(ind,:);
+            
 data_AWS_GITS = TreatAndFilterData(data_AWS_GITS,'ConvertHumidity', 'GITS', OutputFolder, 'off');
 data_AWS_CEN = TreatAndFilterData(data_AWS_CEN,'ConvertHumidity', 'CEN', OutputFolder, 'off');
 % data_AWS_CEN = ResampleTable(data_AWS_CEN);
@@ -534,6 +547,19 @@ data_surf{1}.SRout(2:end) = data_surf{1}.SRout(1:end-1);
 data_surf{2}.SRin(1:end-1) = data_surf{2}.SRin(2:end);
 data_surf{2}.SRout(1:end-1) = data_surf{2}.SRout(2:end);
 
+%% Reporting available observation data
+var_list = {'AirTemperature2C', 'RelativeHumidity2Perc',...
+    'WindSpeed2ms','AirPressurehPa',...
+    'ShortwaveRadiationDownWm2', 'LongwaveRadiationDownWm2'};
+    
+for i = 1:length(var_list)
+    disp(var_list{i})
+    try disp((sum(~isnan(data_AWS_CEN.(var_list{i})))...
+        +sum(~isnan(data_AWS_GITS.(var_list{i}))))/24/365)
+    catch me
+        disp((sum(~isnan(data_AWS_CEN.(var_list{i}))))/24/365)
+    end
+end
 %%  Comparison model vs station data
 
 for ii =1:4
@@ -570,6 +596,11 @@ data_RCM{3} =  LoadRCMData('GITS','CanESM_rcp45');
 data_RCM{4} =  LoadRCMData('GITS','CanESM_rcp85');
 
 for i = 1:4
+
+     data_RCM{i} = data_RCM{i}(...
+         and(data_RCM{i}.time>=data_surf{i}.time(1),...
+         data_RCM{i}.time<=data_surf{i}.time(end)),:);
+
     data_RCM{i}.WindSpeed2ms=max(0,data_RCM{i}.WindSpeed2ms);     
     time_start = data_surf{i}.time(1);
     time_end = data_surf{i}.time(end);
@@ -603,10 +634,19 @@ LabelList =  {'Air temperature (^oC)',...
     'Downward LW radiation (W/m^2)'};
 NameFile = sprintf('%s/S3-SurfaceForcing_scatter_before',OutputFolder);
 Plot_scatter_CC(data_RCM,VarList2, data_AWS_GITS,  ...
-    data_AWS_CEN,VarList2, vis,LabelList, NameFile,model_list2,'Raw')
+    data_AWS_CEN,VarList2, vis,LabelList, NameFile,model_list2,'Raw');
 NameFile = sprintf('%s/S3-SurfaceForcing_scatter_before_daily',OutputFolder);
 Plot_scatter_CC(data_RCM_d,VarList2, data_AWS_GITS_d,  ...
-    data_AWS_CEN_d,VarList2, vis,LabelList, NameFile,model_list2,'Raw daily')
+    data_AWS_CEN_d,VarList2, vis,LabelList, NameFile,model_list2,'Raw daily');
+
+%% Evaluation snowfall before/after adjustment
+
+disp('Adjustement of snowfall rates (%)')
+for i = 1:4
+    disp(model_list{i})
+     disp(nansum(data_surf{i}.snowfall-data_RCM{i}.Snowfallmweq)./...
+         nansum(data_RCM{i}.Snowfallmweq)*100);
+end
 
 %%  Preparing temperature data
 %       Loading RACMO version for depth calculation
@@ -673,7 +713,8 @@ toc
 disp('Loading GITS subsurface temperatures')
 
 c.verbose = 1;
-% c_all{1}.InputAWSFile = '../AWS_Processing/Output/GITS_RACMO/data_GITS_combined_hour.txt';
+
+c_all{1}.InputAWSFile = 'C:/Data_save/CC/AWS/GITS_RACMO/data_GITS_combined_hour.txt';
 clearvars data_GITS data data_out
 [~, ~, ~, ~, ~,...
     ~, ~, ~, ~, ~,~, ...
@@ -763,25 +804,30 @@ data_THM = struct();
 [data_THM.time,~,data_THM.depth, data_THM.T_ice]= LoadCENTHMData();
 data_THM.T_ice(1:3,:) = NaN;
 data_THM.time_org = data_THM.time;
-ind_end = find(data_THM.time==data_racmo.time(end));
+% cropping/extending the observations to match size of model outputs.
 ind_transition = (data_THM.time(1)-data_racmo.time(1))*24;
+ind_end = find(data_THM.time(end)==data_racmo.time);
+missing_end = length(data_racmo.time) - ind_end;
 
 data_THM.T_ice = [NaN(size(data_THM.T_ice,1),...
     (data_THM.time(1)-data_racmo.time(1))*24),...
-    data_THM.T_ice(:,1:ind_end)] ;
+    data_THM.T_ice, ...
+    NaN(size(data_THM.T_ice,1),missing_end)] ;
 
 data_THM.depth = [NaN(size(data_THM.T_ice,1),...
     (data_THM.time(1)-data_racmo.time(1))*24),...
-    data_THM.depth(:,1:ind_end)] ;
+    data_THM.depth, ...
+    NaN(size(data_THM.T_ice,1),missing_end)] ;
 
 data_THM.time = [data_racmo.time(1:ind_transition)',...
-    data_THM.time(1:ind_end)] ;
+    data_THM.time, ...
+    data_THM.time(end)+1/24*(1:missing_end)] ;
 TT_THM = repmat(data_THM.time,size(data_THM.T_ice,1),1);
 clearvars ind_end ind_transition
 toc
 
 % Correcting thermistor location for the CEN_THM temp
-addpath(genpath('../../Data/AWS/'))
+% addpath(genpath('../../Data/AWS/'))
 time_mod = data_racmo.time;
 
 [data_THM.depth_m, data_THM.T_ice_m] = ...
@@ -966,15 +1012,15 @@ end
 
 
 col_lines = RGB('gray');
-dates =  datenum(['01-Jul-2001'; '23-Apr-2006'; '01-Aug-2017']);
+dates =  datenum(['15-Apr-2002'; '23-Apr-2006'; '01-Aug-2017']);
 
 ha(14).Visible = 'off';
 ha(14).Position = [0 0 1 1];
 set(f,'CurrentAxes',ha(14))
 hold on
-plot([0.3 0.2 ],[ 0.413 0.37],'LineWidth', 2, 'Color',col_lines);
-plot([0.31 0.5 ],[ 0.413 0.37],'LineWidth', 2, 'Color',col_lines);
-plot([0.36 0.75 ],[ 0.413 0.37],'LineWidth', 2, 'Color',col_lines);
+plot([0.298 0.2 ],[ 0.413 0.37],'LineWidth', 2, 'Color',col_lines);
+plot([0.305 0.5 ],[ 0.413 0.37],'LineWidth', 2, 'Color',col_lines);
+plot([0.356 0.75 ],[ 0.413 0.37],'LineWidth', 2, 'Color',col_lines);
 xlim([0 1])
 ylim([0 1])
 ha(14).XColor='w';
@@ -992,7 +1038,6 @@ for i = [1 4 7 10 13]
     h(2) = plot(datenum(dates(2))*[1 1], y,'LineWidth',2,'Color',col_lines);
     h(3) = plot(datenum(dates(3))*[1 1], y,'LineWidth',2,'Color',col_lines);
 end
-
 
 ha(22).Position(4)= 0.27;
 ha(23).Position(4)= ha(22).Position(4);
@@ -1123,8 +1168,8 @@ for ii =1:4
         lm2=[];
         lm2.Coefficients.Estimate=[NaN NaN];
     else
-        lm2 = fitlm(data_surf{ii}.time(data_surf{ii}.time>datenum(2020,1,1)),...
-            data_surf{ii}.T10(data_surf{ii}.time>datenum(2020,1,1)));
+        lm2 = fitlm(data_surf{ii}.time(data_surf{ii}.time>=datenum(2020,1,1)),...
+            data_surf{ii}.T10(data_surf{ii}.time>=datenum(2020,1,1)));
     end
     
     [LIA] = find(ismember(data_surf{ii}.time,temp_obs.time));
@@ -1543,8 +1588,8 @@ for j = 1:4
             'Color',col(ii,:),'LineWidth',2)
     end
     set_monthly_tick(data_comp.time)
-    if j<4
-    xlim([time_maintenance(1) time_maintenance(2)])
+    if ismember(j,[1 2 3 5 6 7])
+    xlim([time_maintenance(1) datenum(2019,5,1)])
     else
     xlim([time_maintenance(2)+2 data_comp.time(end)])
     end
@@ -1596,11 +1641,12 @@ col = lines(4);
         plot(data_comp.time,tmp,'k','LineWidth',2)
         
         set_monthly_tick(data_comp.time)
-        if j<4
-        xlim([time_maintenance(1) time_maintenance(2)])
+        if ismember(j,[1 2 3 5 6 7])
+        xlim([time_maintenance(1) datenum(2019,5,1)])
         else
         xlim([time_maintenance(2)+2 data_comp.time(end)])
         end
+        
         if j==1
             ylabel('Compaction rate\newline       (mm/day)','Interpreter','tex')
         end
@@ -1635,6 +1681,7 @@ for k = 1:8
     xlabel(ha(k),'Year');
     end
 end
+
 print(f, sprintf('%s/_9-compaction_val',OutputFolder), '-djpeg')
 if strcmp(vis,'off')
     close(f);
@@ -1927,7 +1974,7 @@ h_text.FontWeight='bold';
 h_text.FontSize=16;
 print(f, sprintf('%s/_10-tracking_debris_horizon',OutputFolder), '-djpeg') 
 
-%%
+%% Plotting infiltration for 1966-2100
   f = figure('Visible',vis,'OuterPosition',[0 0 18 14]);
 h = [];
 ha= tight_subplot(2,1,0.08,[0.3 0.1] ,0.12 );                      
@@ -1965,6 +2012,18 @@ ylabel('melt amount')
 set_monthly_tick(data_surf{ii}.time)
 axis tight
 % xlim(datenum([2000 2019],1,1))
+%% Plotting 1966 horizon over 1966-2017
+figure
+hold on
+for ii =2:4
+
+       plot(data_surf{ii}.time(1:ind_2017),data_surf{ii}.depth_66(1:ind_2017),...
+        'Color',col(ii,:),'LineWidth',2);
+       plot(data_surf{ii}.time(1:ind_2017),data_surf{ii}.depth_12(1:ind_2017),...
+        'Color',col(ii,:),'LineWidth',2);
+end
+axis tight
+set_monthly_tick(data_surf{ii}.time(1:ind_2017))
 %% Comparing SMB with MAR  + Mean melt start end + snowpit
 opts = delimitedTextImportOptions("NumVariables", 3);
 opts.DataLines = [2, Inf];
@@ -1974,7 +2033,7 @@ opts.VariableTypes = ["double", "double", "double"];
 opts = setvaropts(opts, [1, 2, 3], "DecimalSeparator", ".");
 opts.ExtraColumnsRule = "ignore";
 opts.EmptyLineRule = "read";
-mar_rcp85 = readtable("Input\MAR_ACCESS1.3_CC_smb_runoff.txt", opts);
+mar_rcp85 = readtable("Input\Extra\Camp Century\MAR_ACCESS1.3_CC_smb_runoff.txt", opts);
 clear opts
 
 disp('-----')
@@ -2109,7 +2168,7 @@ opts.DataRange = "A4:B153";
 opts.VariableNames = ["year", "smb_obs"];
 opts.SelectedVariableNames = ["year", "smb_obs"];
 opts.VariableTypes = ["double", "double"];
-accum_obs = readtable("C:\Users\bav\OneDrive - Geological survey of Denmark and Greenland\Code\SAFIRE model\Input\Camp Century\MAR_timeseries_calibration_GRL2016.xlsx", opts, "UseExcel", false);
+accum_obs = readtable(".\Input\Extra\Camp Century\MAR_timeseries_calibration_GRL2016.xlsx", opts, "UseExcel", false);
 clear opts
 
 opts = spreadsheetImportOptions("NumVariables", 14);
@@ -2120,7 +2179,7 @@ opts.SelectedVariableNames = ["year", "SF", "ME", "SMB", "RU", "SF_adj", "SMB_ad
 opts.VariableTypes = ["char", "char", "char", "char", "double", "double", "double", "double", "double", "char", "char", "double", "char", "double"];
 opts = setvaropts(opts, [1, 2, 3, 4, 10, 11, 13], "WhitespaceRule", "preserve");
 opts = setvaropts(opts, [1, 2, 3, 4, 10, 11, 13], "EmptyFieldRule", "auto");
-MAR_NorESM1_RCP85 = readtable("C:\Users\bav\OneDrive - Geological survey of Denmark and Greenland\Code\SAFIRE model\Input\Camp Century\MAR_timeseries_calibration_GRL2016.xlsx", opts, "UseExcel", false);
+MAR_NorESM1_RCP85 = readtable(".\Input\Extra\Camp Century\MAR_timeseries_calibration_GRL2016.xlsx", opts, "UseExcel", false);
 clear opts
 
 opts = spreadsheetImportOptions("NumVariables", 14);
@@ -2131,7 +2190,7 @@ opts.SelectedVariableNames = ["year", "SF", "ME", "SMB", "RU", "SF_adj", "SMB_ad
 opts.VariableTypes = ["char", "char", "char", "char", "double", "double", "double", "double", "double", "char", "char", "double", "char", "double"];
 opts = setvaropts(opts, [1, 2, 3, 4, 10, 11, 13], "WhitespaceRule", "preserve");
 opts = setvaropts(opts, [1, 2, 3, 4, 10, 11, 13], "EmptyFieldRule", "auto");
-MAR_CanESM2_RCP85 = readtable("C:\Users\bav\OneDrive - Geological survey of Denmark and Greenland\Code\SAFIRE model\Input\Camp Century\MAR_timeseries_calibration_GRL2016.xlsx", opts, "UseExcel", false);
+MAR_CanESM2_RCP85 = readtable(".\Input\Extra\Camp Century\MAR_timeseries_calibration_GRL2016.xlsx", opts, "UseExcel", false);
 clear opts
 
 ii = 4;

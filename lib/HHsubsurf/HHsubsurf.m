@@ -61,7 +61,7 @@ set(0, 'DefaultFigurePosition', [.25 .25 [29.7 16]-0.5]);
 % ones extracted from the csv files. The fieldnames in param should be the
 % same as is c.
 c = ImportConst(param);
-[RunName, c] = OutputName(c,c.station);
+[RunName, c] = OutputName(c);
 diary(sprintf('%s/log.txt',c.OutputFolder));
 
 [time, year, day, hour, pres,...

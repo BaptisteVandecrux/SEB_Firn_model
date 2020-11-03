@@ -115,19 +115,19 @@ step = 12; %for faster plotting
         end
 
     end
-        for kk = 1:size(depth_obs,1)            
-            % interpolating between the steps
-            ind_nan = find(isnan(depth_therm_modscale(kk, :)));
-            ind_no_nan = find(~isnan(depth_therm_modscale(kk, :)));
-             depth_therm_modscale(kk,ind_nan)=interp1(ind_no_nan,...
-                depth_therm_modscale(kk, ind_no_nan),...
-                ind_nan,'linear');
-        end
-        % sorting the depth 
-        for i = 1:length(time_mod)
-            [depth_therm_modscale(:,i), ind]= ...
-                sort(depth_therm_modscale(:,i),'ascend');
-            T_ice_obs(:,i) = T_ice_obs(ind,i);
-        end
+    for kk = 1:size(depth_obs,1)            
+        % interpolating between the steps
+        ind_nan = find(isnan(depth_therm_modscale(kk, :)));
+        ind_no_nan = find(~isnan(depth_therm_modscale(kk, :)));
+         depth_therm_modscale(kk,ind_nan)=interp1(ind_no_nan,...
+            depth_therm_modscale(kk, ind_no_nan),...
+            ind_nan,'linear');
+    end
+    % sorting the depth 
+    for i = 1:length(time_mod)
+        [depth_therm_modscale(:,i), ind]= ...
+            sort(depth_therm_modscale(:,i),'ascend');
+        T_ice_obs(:,i) = T_ice_obs(ind,i);
+    end
 end
     

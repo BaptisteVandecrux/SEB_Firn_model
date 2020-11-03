@@ -125,7 +125,7 @@ end
 if strcmp(c.station,'NUK_K')
     DIV = 10;
 else
-    DIV = 1;
+    DIV = 2;
 end
 
 col = lines(length(years_uni));
@@ -142,50 +142,48 @@ for i = 1:length(years_uni)
         [melt_info.year(i); melt_info.year(i)],'-o','LineWidth',1,'Color',col(i,:))
     ind = and(time_year{i}>=melt_info.start_date(i),time_year{i}<=melt_info.end_date(i));
     plot(time_year{i}(ind)- melt_info.date_start_year(i), ...
-        melt_info.year(i) +  melt_year{i}(ind)/1000/DIV,'LineWidth',2,'Color',col(i,:))
+        melt_info.year(i) -  melt_year{i}(ind)/1000/DIV,'LineWidth',2,'Color',col(i,:))
     
-    %    plot(time_year{i}([find(ind,1,'first') find(ind,1,'first')])...
-    %        - melt_info.date_start_year(i), ...
-    %         melt_info.year(i) +  [0 1],'LineWidth',1,'Color',col(i,:))
-    %     q = quiver(,0,'Color',col(i,:));
-    %      q.MaxHeadSize = 500;
     
     ah = annotation('arrow',...
-        'headStyle','vback3','HeadLength',10,'HeadWidth',5);
+        'headStyle','none','HeadLength',10,'HeadWidth',5);
     set(ah,'parent',gca)
     set(ah,'position',...
         [time_year{i}(find(ind,1,'first'))- melt_info.date_start_year(i),...
-        melt_info.year(i),0,0.928],'Color','k');
-    if i==length(years_uni)
-        ah2 = annotation('textbox',[1 1 1 1],...
-            'String',sprintf('Melt \n%i mm',10*DIV),...
-            'HorizontalAlignment','Center', 'LineStyle','none');
-        set(ah2,'parent',gca)
-        set(ah2,'position',...
-            [time_year{i}(find(ind,1,'first'))-40 - melt_info.date_start_year(i),...
-            melt_info.year(i)+0.1 1 1],...
-            'FitBoxToText','on');
-    end
+        melt_info.year(i),0,-0.928/2],'Color','k');
+    plot(time_year{i}(find(ind,1,'first'))- melt_info.date_start_year(i),...
+        melt_info.year(i)-0.928/2,'^k','MarkerFaceColor','k')
+%     if i==length(years_uni)
+    ah2 = annotation('textbox',[1 1 1 1],...
+        'String',sprintf('Melt \n%i mm',10*DIV/2),...
+        'HorizontalAlignment','Center', 'LineStyle','none');
+    set(ah2,'parent',gca)
+    set(ah2,'position',...
+        [time_year{i}(find(ind,1,'first'))-30 - melt_info.date_start_year(i),...
+        melt_info.year(i)-1.5+0.1 1 1],...
+        'FitBoxToText','on');
+%     end
 end
 clearvars lm
 lm{1} = fitlm(melt_info.year,melt_info.start_date - melt_info.date_start_year);
 lm{2} = fitlm(melt_info.year,melt_info.end_date - melt_info.date_start_year);
 % lm{3} = fitlm(melt_info.year,melt_info.end_date - melt_info.date_start_year);
 
-for j = 1:2
-    max(lm{j}.Coefficients.pValue)
-    plot(melt_info.year*lm{j}.Coefficients.Estimate(2) +lm{j}.Coefficients.Estimate(1),...
-        melt_info.year,':k')
-end
+% for j = 1:2
+%     max(lm{j}.Coefficients.pValue)
+%     plot(melt_info.year*lm{j}.Coefficients.Estimate(2) +lm{j}.Coefficients.Estimate(1),...
+%         melt_info.year,':k')
+% end
 axis fill
 box on
 ylim([years_uni(1)-0.2, years_uni(end)+max( melt_year{i}(ind)/1000/DIV)+0.5])
+ylim([years_uni(1)-2, years_uni(end)+0.5])
 if strcmp(c.station,'CP1')
     xlim([135 260])
 else
     xlim([0 365])
 end
-set(gca,'XMinorTick','on','YTick',years_uni,'YTickLabel',years_uni)
+set(gca,'XMinorTick','on','YTick',years_uni,'YTickLabel',years_uni,'YDir','reverse')
 title(c.station)
 xlabel('Day of year')
 ylabel('Year')

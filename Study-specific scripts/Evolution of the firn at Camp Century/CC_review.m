@@ -21,13 +21,13 @@ ylabel('Melt adjusted using CEN (mm)')
 %%
 % close all
 figure
-subplot(2,1,1)
+% subplot(2,1,1)
+% hold on
+% plot(data_AWS_GITS.time,data_AWS_GITS.AirTemperature1C)
+% plot(data_AWS_GITS.time,data_AWS_GITS.AirTemperature2C)
+% subplot(2,1,2)
 hold on
-plot(data_AWS_GITS.time,data_AWS_GITS.AirTemperature1C)
-plot(data_AWS_GITS.time,data_AWS_GITS.AirTemperature2C)
-subplot(2,1,2)
-hold on
-scatter(data_AWS_GITS.AirTemperature1C,data_AWS_GITS.AirTemperature2C,'.k')
+scatter(data_AWS_GITS.AirTemperature2C,data_AWS_GITS.AirTemperature1C,'.k')
 plot([-40 5],[-40 5],'r','LineWidth',2)
 xlim([-40 5])
 ylim([-40 5])
@@ -35,6 +35,25 @@ axis square; box on; grid on
 xlabel('Air temperature at the lower level (degC)')
 ylabel('Air temperature at the upper level (degC)')
 text1 = sprintf('ME = %0.1f degC',...
-                nanmean( data_AWS_GITS.AirTemperature1C-...
-                data_AWS_GITS.AirTemperature3C));
+                nanmean( data_AWS_GITS.AirTemperature2C-...
+                data_AWS_GITS.AirTemperature1C));
 title(text1)
+
+% figure
+% subplot(2,1,1)
+% hold on
+% plot(data_AWS_GITS.time,data_AWS_GITS.AirTemperature3C)
+% plot(data_AWS_GITS.time,data_AWS_GITS.AirTemperature4C)
+% subplot(2,1,2)
+% hold on
+% scatter(data_AWS_GITS.AirTemperature3C,data_AWS_GITS.AirTemperature4C,'.k')
+% plot([-40 5],[-40 5],'r','LineWidth',2)
+% xlim([-40 5])
+% ylim([-40 5])
+% axis square; box on; grid on
+% xlabel('Air temperature at the lower level (degC)')
+% ylabel('Air temperature at the upper level (degC)')
+% text1 = sprintf('ME = %0.1f degC',...
+%                 nanmean( data_AWS_GITS.AirTemperature3C-...
+%                 data_AWS_GITS.AirTemperature4C));
+% title(text1)
