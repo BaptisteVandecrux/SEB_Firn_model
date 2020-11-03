@@ -1,28 +1,18 @@
-function [RunName, c] = OutputName(c, tag)
+function [RunName, c] = OutputName(c)
 if c.ConductionModel == 1
     RunName = sprintf('%s_%i_ConductionOnly',...
         tag, c.year);
 else
-    if c.do_no_darcy == 1
-        s3 = '_no_darcy';
-    else
-        s3 = sprintf('_darcy_wh%0.2f',c.whwice);
-    end
-
+    RunName = c.station;
+    RunName = [RunName, sprintf('_%i',c.year)];
     if c.calc_CLliq == 1
         text_Si = 'CL';
     else
-        text_Si = spritnf('%0.2f',c.liqmax);
+        text_Si = sprintf('%0.2f',c.liqmax);
     end
-
-    if length(c.year)==1
-        RunName = sprintf('%s_%i_Si%s_pr%0.3f_Ck%0.2f%s',...
-            tag, c.year,  text_Si ,c.prec_rate, c.Ck, s3);
-    else
-        RunName = sprintf('%s_%i-%i_Si%s_pr%0.3f_Ck%0.2f%s',...
-            tag, c.year(1),c.year(2), text_Si ,c.prec_rate, c.Ck, s3);
-    end
-
+    RunName = [RunName, '_IWC_', text_Si];
+    RunName = [RunName, sprintf('_%i_layers',c.jpgrnd-1)];
+    
     c.OutputFolder = sprintf('%s/%s',c.OutputRoot,RunName);
     [~,~,id] =  mkdir(c.OutputFolder);
     count = 1;

@@ -23,35 +23,21 @@ function [T_ice, rhofirn_ini,rho,snic_ini, snowc_ini, ...
 % csv file.
 if c.retmip == 0
     switch c.station
-        case 'CP1'
-            filename = './Input/Initial state/density/DensityProfile_CP1_1998.csv';
         case {'DYE-2','DYE-2_long'}
             filename = './Input/Initial state/density/RetMIP_density_Dye-2 1998.csv';
-        case 'Summit'
-            filename = './Input/Initial state/density/DensityProfile_Summit_1998.csv';
+        case {'CP1', 'Summit', 'NASA-SE', 'NASA-E', 'NASA-U', 'SouthDome', 'Saddle', 'TUNU-N'}
+            filename = ['./Input/Initial state/density/DensityProfile_', c.station,'_1998.csv'];
 %             filename = './Input/Initial state/density/RetMIP_density_Summit 1990.csv';
-        case 'NASA-SE'
-            filename = './Input/Initial state/density/DensityProfile_NASA-SE_1998.csv';
-        case 'NASA-E'
-            filename = './Input/Initial state/density/DensityProfile_NASA-E_1998.csv';  
-        case 'NASA-U'
-            filename = './Input/Initial state/density/DensityProfile_NASA-U_1998.csv';
-        case 'SouthDome'
-            filename = './Input/Initial state/density/DensityProfile_SouthDome_1998.csv';
-        case 'Saddle'
-            filename = './Input/Initial state/density/DensityProfile_Saddle_1998.csv';
-        case 'TUNU-N'
-            filename = './Input/Initial state/density/DensityProfile_TUNU-N_1998.csv'; 
         case 'NGRIP'
             filename = './Input/Initial state/density/DensityProfile_NGRIP_1997.csv';  
-      case 'GITS'
+        case 'GITS'
             filename = './Input/Initial state/density/DensityProfile_GITS_1963.csv';  
         case 'DYE-2_HQ'
             filename = './Input/Initial state/density/RetMIP_density_Dye-2 2016.csv';
         case 'NUK_K'
             filename = './Input/Initial state/density/DensityProfile_NUK_K.csv';
-        case 'KAN_M'
-            filename = './Input/Initial state/density/DensityProfile_NUK_K.csv';
+        case 'EGP'
+            filename = './Input/Initial state/density/DensityProfile_EGP_2012.csv';
         case 'KAN-U'
     %         if c.year(1) == 2012
                 filename = './Input/Initial state/density/RetMIP_density_KAN-U 2012.csv';
@@ -61,21 +47,17 @@ if c.retmip == 0
        case 'Miege'
             filename = './Input/Initial state/density/RetMIP_density_Firn Aquifer.csv';
         otherwise
-            error('Missing initial density profile for requested station.');
+            if c.elev_AWS < 1400
+                filename = './Input/Initial state/density/DensityProfile_NUK_K.csv';
+            elseif c.elev_AWS < 1800
+                filename = './Input/Initial state/density/RetMIP_density_Dye-2 2016.csv';
+            else
+                filename = './Input/Initial state/density/DensityProfile_Summit_1998.csv';
+            end
+            warning('Missing initial density profile for requested station.');
     end
 else
-    switch c.station
-     case 'KAN-U'
-            filename = '.\RetMIP\Input files\density\RetMIP_density_KAN-U.csv';
-     case 'Dye-2_long'
-            filename = '.\RetMIP\Input files\density\RetMIP_density_Dye-2_long.csv';
-     case 'Dye-2_16'
-            filename = '.\RetMIP\Input files\density\RetMIP_density_Dye-2_16.csv';
-     case 'Summit'
-            filename = '.\RetMIP\Input files\density\RetMIP_density_Summit.csv';
-     case 'FA'
-            filename = '.\RetMIP\Input files\density\RetMIP_density_FA.csv';
-    end
+    filename = ['.\RetMIP\Input files\density\RetMIP_density_', c.station,'.csv'];
 end
 disp('File used for firn density initialization:')
 disp(filename)
@@ -232,7 +214,7 @@ else
         y = [mean_firndensity; 830;830];
         p = polyfit(x,y,2);
         fo = @(x) p(1)*x.^2 + p(2)*x + p(3);
-
+        
         rhofirn_ini(length(mean_firndensity)+1:length(c.cdel),1) = ...
             fo(depth_weq(length(mean_firndensity)+1:length(c.cdel)));
         rhofirn_ini(rhofirn_ini>c.rho_ice) = c.rho_ice;
@@ -293,20 +275,19 @@ if c.retmip == 0
         filename = './Input/Initial state/temperature/RetMIP_temperature_Dye-2.csv';
         case {'Summit', 'NASA-E', 'NGRIP'}
         filename = './Input/Initial state/temperature/RetMIP_temperature_Summit.csv';
-        case 'NASA-U'
-        filename = './Input/Initial state/temperature/RetMIP_temperature_NASA-U.csv';
+        case {'NASA-U', 'KAN-U'}
+        filename = ['./Input/Initial state/temperature/RetMIP_temperature_', c.station,'.csv'];
         case 'GITS'
             filename = './Input/Initial state/temperature/GITS_temperature.csv';  
         case 'NUK_K'
-        filename = './Input/Initial state/temperature/InitialTemperatureProfile_NUK_K.csv';
+            filename = './Input/Initial state/temperature/InitialTemperatureProfile_NUK_K.csv';
         case 'Miege'
-        filename = './Input/Initial state/temperature/RetMIP_temperature_Firn Aquifer.csv';
-        case 'KAN-U'
-        filename = './Input/Initial state/temperature/RetMIP_temperature_KAN-U.csv';
+            filename = './Input/Initial state/temperature/RetMIP_temperature_Firn Aquifer.csv';
+
     
         otherwise
             disp('Using thermistor data')
-            for i = 1:24*7 %we look at the week following the installation
+            for i = 1:24*14 %we look at the week following the installation
                 if sum(~isnan(T_obs(i,:)))>1
                     if sum(~isnan(T_obs(i,:)))<3
                         continue
@@ -336,18 +317,7 @@ if c.retmip == 0
     end
 
 else
-    switch c.station
-     case 'KAN-U'
-            filename = '.\RetMIP\Input files\temperature\RetMIP_temperature_KAN-U.csv';
-     case 'Dye-2_long'
-            filename = '.\RetMIP\Input files\temperature\RetMIP_temperature_Dye-2_long.csv';
-     case 'Dye-2_16'
-            filename = '.\RetMIP\Input files\temperature\RetMIP_temperature_Dye-2_16.csv';
-     case 'Summit'
-            filename = '.\RetMIP\Input files\temperature\RetMIP_temperature_Summit.csv';
-     case 'FA'
-            filename = '.\RetMIP\Input files\temperature\RetMIP_temperature_FA.csv';
-    end
+    filename = ['.\RetMIP\Input files\temperature\RetMIP_temperature_', c.station,'.csv'];
 end
 
     if ~isempty(filename)

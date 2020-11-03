@@ -9,7 +9,7 @@
 load ../matlab_functions/Core_all
 
 
-station = 'TUNU-N';
+station = 'EGP';
 % Plot in the site you want
 %  PlotCore(Core,'Site','Camp Century')
 
@@ -28,6 +28,8 @@ switch station
         ind = FindCore(Core,'Name','core_1_2012');
     case 'NASA-SE'
         ind = FindCore(Core,'Name','CORE 6642 (B)');
+    case 'EGP'
+        ind = FindCore(Core,'Name','NEGIS');
 %        ind_new = length(Core)+1;
 %        Core{ind_new} = Core{ind1};
 %        Core{ind_new}.Info.Name = 'NASA-SE_bapt';
@@ -124,7 +126,7 @@ ice_perc = Core{ind}.Data.Type_perc;
 % end
 % DensProfile = [depth, density, ice_perc];
 filename = sprintf('./Input/Initial state/DensityProfile_%s_%i.csv',station,Core{ind}.Info.DateCored.Year);
-    M  = [depth, density];
+    M  = [depth', density'];
     M_table = array2table(M,'VariableName', {'depth_m', 'density_kgm3'});
 
     writetable(M_table,filename,'Delimiter',';')

@@ -10,7 +10,6 @@ function RH_wrt_w = RHice2water(RH_wrt_i, T, pres)
 %   pres is the corresponding air pressure in hPa (not used in the current
 %   form of the function)
 
-
 T_0 = 273.15;
 T_100 = 373.15;
 % eps is the ratio of the molecular weights of water and dry air

@@ -61,7 +61,7 @@ set(0, 'DefaultFigurePosition', [.25 .25 [29.7 16]-0.5]);
 % ones extracted from the csv files. The fieldnames in param should be the
 % same as is c.
 c = ImportConst(param);
-[RunName, c] = OutputName(c,c.station);
+[RunName, c] = OutputName(c);
 diary(sprintf('%s/log.txt',c.OutputFolder));
 
 [time, year, day, hour, pres,...
@@ -471,7 +471,7 @@ for j=1:c.elev_bins
     
     %% Writing data to net cdf
     data_surf = {year,       day,            hour,   LRin(:,j), ...
-            c.em*c.sigma*Tsurf(:,j).^4-(1-c.em)*LRin(:,j), SHF(:,j), LHF(:,j), ...
+            c.em*c.sigma*Tsurf(:,j).^4+(1-c.em)*LRin(:,j), SHF(:,j), LHF(:,j), ...
             GFsurf(:,j),    rainHF(:,j),        meltflux(:,j),  ...
             H_surf(:,j),    SMB_mweq(:,j),    melt_mweq(:,j),    ...
             sublimation_mweq(:,j),    H_comp(:,j),        runoff(:,j),    snowthick(:,j), ...
@@ -485,7 +485,7 @@ for j=1:c.elev_bins
 
 try WritingModelOutput(time,data_surf,depth_act, data_subsurf,j,  c)
 catch me 
-ajf = 0 ;
+	error('Writing failed')
 end
 end  % END OF SPATIAL LOOP -----------------------------------------------------------------------
 
