@@ -1,0 +1,12 @@
+plot(P1dens,depths)
+set(gca,'ydir','reverse')
+hold on
+plot(table2array(P2(:,2)),depths)
+plot(table2array(P3(:,2)),depths)
+plot(table2array(P4(:,2)),depths)
+plot(table2array(P5(:,2)),depths)
+plot(table2array(P6(:,2)),depths)
+plot(table2array(P7(:,2)),depths)
+plot(table2array(P8(:,2)),depths)
+plot(table2array(P9(:,2)),depths)
+plot(table2array(P10(:,2)),depths)
