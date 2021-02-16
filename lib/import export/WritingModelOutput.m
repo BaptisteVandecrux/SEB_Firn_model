@@ -1,5 +1,5 @@
 function []=WritingModelOutput(time,data_surf,depth_act, data_subsurf,j,  c)
-    % Surface variables
+    %% Surface variables
     namefilesurf = sprintf('%s/%s_surface.nc',c.OutputFolder,c.station);
        
     varname =  {'Year'  'Day'   'Hour' ...
@@ -43,11 +43,12 @@ function []=WritingModelOutput(time,data_surf,depth_act, data_subsurf,j,  c)
     WriteNC_1D(namefilesurf, time, data_surf, varname, unit, long_varname)
     clear data varname unit long_varname
 
-    % Subsurface variables    
+    %% Subsurface variables    
 
-    varname =  {'T_ice' 'rho' 'slwc' 'snic' 'snowc' 'dgrain' 'rfrz' 'compaction'};
-    unit =  {'C' 'kg/m^3' 'mweq' 'mweq' 'mweq' 'mweq' 'mm' 'm'};
+    varname =  {'T_ice' 'rho' 'rho_firn_only' 'slwc' 'snic' 'snowc' 'dgrain' 'rfrz' 'compaction'};
+    unit =  {'C' 'kg/m^3' 'kg/m^3' 'mweq' 'mweq' 'mweq' 'mweq' 'mm' 'm'};
     long_varname = {'Firn temperature',...
+                    'Firn bulk density including ice content',...
                     'Firn density excluding ice content',...
                     'Firn liquid water content',...
                     'Firn ice content',...

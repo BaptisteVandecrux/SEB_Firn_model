@@ -20,12 +20,12 @@ The surface energy balance model finds iteratively the subfreezing surface tempe
 - downward shortwave radiation (given by input file)
 - downward longwave radiation (given by input file)
 - upward shortwave radiation (calculated from surface temperature)
-- latent and sensible heat fluxes (calculated from surface temperature and input meteorology using the [Monin-Obhukhov similarity theory](https://en.wikipedia.org/wiki/Monin%E2%80%93Obukhov_similarity_theory))
+- latent and sensible heat fluxes (calculated from surface temperature and input meteorology using the [Monin-Obukhov similarity theory](https://en.wikipedia.org/wiki/Monin%E2%80%93Obukhov_similarity_theory))
 - conductive heat flux to the underlying snow and firn (calculated from the surface temperature and the firn model)
 
 If it is not possible to find a subfreezing surface temperature that nullify the sum of energy fluxes, then surface temperature is set to 0°C and the sum of all energy fluxes is then used to melt surface material, snow or ice.
 
-The GEUS firn model is a multilayer snow and firn model that tracks the temperature, density, grain size and water content for each model layer. At each time step, the model column is updated for temperature diffusion, firn compaction, grain growth and meltwater infiltration. More informations about each of these routines can be found in Vandecrux et al. ([2018](https://doi.org/10.1029/2017JF004597), [2020a](https://doi.org/10.1017/jog.2020.30), [2020b](https://doi.org/10.5194/tc-2019-331)) and in the references therein.
+The GEUS firn model is a multilayer snow and firn model that tracks the temperature, density, grain size and water content for each model layer. At each time step, the model column is updated for temperature diffusion, firn compaction, grain growth and meltwater infiltration. More information about each of these routines can be found in Vandecrux et al. ([2018](https://doi.org/10.1029/2017JF004597), [2020a](https://doi.org/10.1017/jog.2020.30), [2020b](https://doi.org/10.5194/tc-2019-331)) and in the references therein.
 
 ## Structure of the program:
 The working directory should contain:
@@ -85,15 +85,16 @@ For the melt, the melt flux variable (W m-2) is named meltflux and is generated 
 ## Supported studies and references<a name="ref" />
 This repository contains the surface energy and mass balance as well as the firn model used for the following studies. However I do not own the input files (station data, firn cores...) and therefore cannot put them online. If you need these input files, please contact me.
 
-1. [Vandecrux et al. (2018) Drivers of Firn Densification on the Greenland Ice Sheet Revealed by Weather Station Observations and Modelling.](https://doi.org/10.1029/2017JF004597)
+1.[Vandecrux et al. (2018) Drivers of Firn Densification on the Greenland Ice Sheet Revealed by Weather Station Observations and Modelling.](https://doi.org/10.1029/2017JF004597)
 In that study we process data from four weather stations in the accumulation area of the Greenland ice sheet, run and evaluate the firn model and use the model output to document the processes behind the seasonal and long term changes in firn density. The scripts, as they were at the time of the sutdy are available [here](https://github.com/BaptisteVandecrux/SEB_Firn_model/releases/tag/0.1) and the data is available for free [here](https://arcticdata.io/catalog/view/doi:10.18739/A2TH8BM6X). 
 
 2. [Vanderux et al. (2020a) Firn cold content evolution at nine sites on the Greenland ice sheet between 1998 and 2017](https://doi.org/10.1017/jog.2020.30). In that study, we use the firn model at nine weather station sites to document the seasonal and long term changes in the firn's cold content, which controls the firn's ability to retain meltwater. The data from this study is available [here](https://arcticdata.io/catalog/view/doi%3A10.18739%2FA2QF8JJ9B), [here](https://arcticdata.io/catalog/view/doi%3A10.18739%2FA2V698C33), and [there](https://arcticdata.io/catalog/view/doi%3A10.18739%2FA2GX44V1P).
 
-3. [Vandecrux et al. (2020b) The firn meltwater Retention Model Intercomparison Project (RetMIP): Evaluation of nine firn models at four weather station sites on the Greenland ice sheet ](https://doi.org/10.5194/tc-2019-331). In that study, we compare the GEUS firn model to other firn models currently used in Greenland and evaluate its output against a set of firn observations. All model runs will be made available on the [PROMICE data portal](https://www.promice.org/PromiceDataPortal/) and the plotting scripts are available [here](https://github.com/BaptisteVandecrux/RetMIP).
-4. [Vandecrux et al. (2020c) Firn evolution at Camp Century, Greenland: 1966-2100]() Submitted at Frontiers in Earth Science
+3. [Vandecrux et al. (2020b) The firn meltwater Retention Model Intercomparison Project (RetMIP): Evaluation of nine firn models at four weather station sites on the Greenland ice sheet](https://doi.org/10.5194/tc-2019-331). In that study, we compare the GEUS firn model to other firn models currently used in Greenland and evaluate its output against a set of firn observations. All model runs will be made available on the [PROMICE data portal](https://www.promice.org/PromiceDataPortal/) and the plotting scripts are available [here](https://github.com/BaptisteVandecrux/RetMIP).
 
-When using any piece of script, cite the article above and give the link to the repository in the acknowledgment.
+4. [Vandecrux et al. (2021) Firn evolution at Camp Century, Greenland: 1966-2100](https://doi.org/10.3389/feart.2021.578978). In that study we use the GEUS model to evaluate the probability of meltwater interacting with military waste buried in the firn given three different climate scenarios.
+
+When using any piece of script, cite the articles above and give the link to the repository in the acknowledgment.
 
 If using specifically the Surface Energy Balance Model the following reference should be added:
 

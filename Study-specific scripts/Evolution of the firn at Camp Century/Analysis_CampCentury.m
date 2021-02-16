@@ -24,12 +24,12 @@ set(0,'defaultfigurepapersize',[29.7 16]);
 PlotThings = 'yes'; % enable/disable all plots
 vis = 'off';        % make the plot visible or not (only plotted in files)
 
-model_list = {'RACMO',  'CanESM_rcp26', 'CanESM_rcp45', 'CanESM_rcp85'};
-model_list2 = {'RACMO',  'CanESM RCP2.6', 'CanESM RCP4.5', 'CanESM RCP8.5'};
-path_list = {'C:/Data_save/CC/GITS_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10',...
- 'C:/Data_save/CC/GITS_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10_2',...
- 'C:/Data_save/CC/GITS_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10_3',...
- 'C:/Data_save/CC/GITS_0_SiCL_pr0.001_Ck1.00_darcy_wh0.10_4'};
+model_list = {'RACMO',  'CanESM2_rcp26', 'CanESM2_rcp45', 'CanESM2_rcp85'};
+model_list2 = {'RACMO';  'CanESM RCP2.6'; 'CanESM RCP4.5'; 'CanESM RCP8.5'};
+path_list = {'C:/Data_save/CC/GITS_RACMO_GEUS_model_output',...
+ 'C:/Data_save/CC/GITS_CanESM2_RCP26_GEUS_model_output',...
+ 'C:/Data_save/CC/GITS_CanESM2_RCP45_GEUS_model_output',...
+ 'C:/Data_save/CC/GITS_CanESM2_RCP85_GEUS_model_output'};
 
 OutputFolder = './Output/Camp Century';
 mkdir(OutputFolder)
@@ -48,7 +48,7 @@ for ii = 1:4
     c_all{ii} = c;
     disp(c.InputAWSFile)
     % extract surface variables
-    namefile = sprintf('%s/surf-bin-%i.nc',path_list{ii},1);
+    namefile = sprintf('%s/CC_%s_surface.nc',path_list{ii},model_list{ii});
     names =  {'time' ...
         'LRin' 'LRout_mdl' 'SHF' 'LHF' 'GF' 'rainHF' 'meltflux'...
         'H_surf' 'SMB_mweq' 'melt_mweq' 'sublimation_mweq' ...
@@ -63,11 +63,15 @@ for ii = 1:4
     end
 
     % extract subsurface variables
-    varname= {'compaction'  'rho' 'slwc' 'snowc' 'snic' 'T_ice'};
+    varname= {'compaction'  'rho_firn_only' 'slwc' 'snowc' 'snic' 'T_ice'};
     data_subsurf{ii} = table();
 
     for i =1:length(varname)
-        namefile = sprintf('%s/%s_bin_%i.nc',path_list{ii},varname{i},1);
+        namefile = sprintf('%s/CC_%s_%s.nc',path_list{ii},model_list{ii},...
+            varname{i});
+        if i==2
+            varname{i}='rho';
+        end
         eval(sprintf('data_subsurf{ii}.%s = ncread(''%s'',''%s'',[1 1], Inf*[1 1],[1 %i]);',...
             varname{i}, namefile,varname{i},step));
     end
