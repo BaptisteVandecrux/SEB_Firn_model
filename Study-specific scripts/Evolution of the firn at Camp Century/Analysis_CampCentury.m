@@ -7,7 +7,7 @@ clearvars
 close all
 clc
 addpath(genpath('lib'))
-addpath(genpath('Input'),'Output')
+addpath(genpath('Input'),'Output',genpath('Study-specific scripts'))
 
 set(0,'defaultfigurepaperunits','centimeters');
 set(0,'DefaultAxesFontSize',15)
@@ -145,6 +145,10 @@ for ii = 1:4
     toc
 end
 clearvars var_name data_surf_yr2 excess_ice c finfo pore_space Tsurf_obs namefile names Surface_Height
+
+% data_surf{2}.SRin(5:end)=data_surf{2}.SRin(1:end-4);
+% data_surf{2}.SRin(1:end-4) = data_surf{2}.SRin(5:end);
+% data_surf{1}.SRin(1:end-4) = data_surf{1}.SRin(5:end);
 
 %% 1-Validation accumulation
 % CC_10 accumulation
@@ -461,7 +465,14 @@ if sum(data_surf{4}. runoff)>0.001
 end
 
 NameFile = sprintf('%s/_5-SMB',OutputFolder);
+
+ 
 [f,ha] = PlotWeather_CC(data_surf_yr,vis,VarList,LabelList,NameFile,model_list2,1000);
+lgd = legend(ha(1),model_list2,'Orientation','horizontal','Interpreter','none');
+lgd.Position = [0.2,0.97, 0.6,0.02];
+lgd.Box='off';
+lgd.FontSize=12;
+
 ha(3).Visible = 'off';
 cla(ha(3))
 ha(4).Position(1) = ha(1).Position(1);
@@ -490,12 +501,17 @@ uistack(sh2,'bottom')
 uistack(h_fill,'bottom')
 ylim([80 710])
 
-legendflex([h_fill, h_med],...
-    {'min/max enveloppe','median'},...
-    'title','Firn core observations',...
-    'buffer',[-200 -1],...
-    'FontSize',10,'ncol',2);
-print(f,NameFile,'-djpeg'); 
+h2 = legend(ha(4),[h_fill; h_med],...
+    {'min/max envelope','median'});
+title(h2,'Firn core observations','FontSize',10,'FontName','Helvetica');
+h2.Box = 'off';
+h2.FontName = 'Helvetica';
+h2.FontSize = 10;
+h2.Position = [.38, .41, 0.4, 0.08];
+
+set(gcf,'PaperUnits','centimeters','PaperSize',[30 29])
+set(f,'renderer','Painters')
+print(f,NameFile,'-depsc'); 
 
 %% Comparing melt with racmo and mar
 filename = '..\..\Data\RCM\RACMO\Data_AWS_RACMO2.3p2_FGRN055_1957-2017\RACMO_3h_AWS_sites.nc';
@@ -548,8 +564,6 @@ data_AWS_GITS.time = data_AWS_GITS.time -1;
 
 data_surf{1}.SRin(2:end) = data_surf{1}.SRin(1:end-1);
 data_surf{1}.SRout(2:end) = data_surf{1}.SRout(1:end-1);
-data_surf{2}.SRin(1:end-1) = data_surf{2}.SRin(2:end);
-data_surf{2}.SRout(1:end-1) = data_surf{2}.SRout(2:end);
 
 %% Reporting available observation data
 var_list = {'AirTemperature2C', 'RelativeHumidity2Perc',...
@@ -564,15 +578,16 @@ for i = 1:length(var_list)
         disp((sum(~isnan(data_AWS_CEN.(var_list{i}))))/24/365)
     end
 end
+
 %%  Comparison model vs station data
 
-for ii =1:4
-    data_surf_d{ii} = AvgTable(data_surf{ii},'daily',@mean);
-end
-data_AWS_GITS_d = AvgTable(data_AWS_GITS,'daily',@mean);
-data_AWS_CEN_d = AvgTable(data_AWS_CEN,'daily',@mean);
-
-%%
+% for ii =1:4
+%     data_surf_d{ii} = AvgTable(data_surf{ii},'daily',@mean);
+% end
+% data_AWS_GITS_d = AvgTable(data_AWS_GITS,'daily',@mean);
+% data_AWS_CEN_d = AvgTable(data_AWS_CEN,'daily',@mean);
+% 
+% %%
 %  close all
 VarList = {'theta_2m','RH_2m_wrtw','ws_10m','SRin','LRin'};
 VarList2 = {'AirTemperature2C','RelativeHumidity2Perc',...
@@ -587,9 +602,10 @@ LabelList =  {'Air temperature (^oC)',...
 NameFile = sprintf('%s/_2-SurfaceForcing_scatter_after',OutputFolder);
 Plot_scatter_CC(data_surf,VarList, data_AWS_GITS,  ...
     data_AWS_CEN,VarList2, vis,LabelList, NameFile,model_list2,'Calibrated')
-NameFile = sprintf('%s/2-SurfaceForcing_scatter_after_daily',OutputFolder);
-Plot_scatter_CC(data_surf_d,VarList, data_AWS_GITS_d,  ...
-    data_AWS_CEN_d,VarList2, vis,LabelList, NameFile,model_list2,'Calibrated daily')
+% NameFile = sprintf('%s/2-SurfaceForcing_scatter_after_daily',OutputFolder);
+% Plot_scatter_CC(data_surf_d,VarList, data_AWS_GITS_d,  ...
+%     data_AWS_CEN_d,VarList2, vis,LabelList, NameFile,model_list2,...
+%     'Calibrated daily')
 
 %%  Comparison model before adjustment vs station data
 close all
@@ -656,10 +672,11 @@ end
 %       Loading RACMO version for depth calculation
 disp('Loading racmo run full res')
 tic
+ii = 1;
     % extract run parameters
     load(strcat(path_list{1},'/run_param.mat'));
     % extract surface variables
-    namefile = sprintf('%s/surf-bin-%i.nc',path_list{1},1);
+    namefile = sprintf('%s/CC_RACMO_surface.nc',path_list{1});
     finfo = ncinfo(namefile);
 %     names={finfo.Variables.Name};
     names = {'time','Year','Day','Hour','SMB_mweq','melt_mweq','H_comp',...
@@ -677,9 +694,13 @@ tic
 data_racmo.time = data_racmo.time(1) + ((1:length(data_racmo.time))'-1)/24;
 
     % extract subsurface variables
-    varname= {'compaction'  'rho' 'slwc' 'snowc' 'snic' 'T_ice'};
+    varname= {'compaction'  'rho_firn_only' 'slwc' 'snowc' 'snic' 'T_ice'};
     for i =1:length(varname)
-        namefile = sprintf('%s/%s_bin_%i.nc',path_list{1},varname{i},1);
+        namefile = sprintf('%s/CC_%s_%s.nc',path_list{1},model_list{1},...
+            varname{i});
+        if i==2
+            varname{i}='rho';
+        end
         eval(sprintf('%s = ncread(''%s'',''%s'');', varname{i}, namefile,varname{i}));
     end
     fprintf('\nData extracted from nc files.\n');
@@ -998,13 +1019,18 @@ for ii =1:4
     xlim(data_surf{4}.time([1 end]))
     set(gca,'Color',[0.95 0.95 0.95]);
     xlabel('')
-
+    y=[0 15];
+    h(1) = plot(datenum(dates(1))*[1 1], y,'LineWidth',2,'Color',col_lines);
+    h(2) = plot(datenum(dates(2))*[1 1], y,'LineWidth',2,'Color',col_lines);
+    h(3) = plot(datenum(dates(3))*[1 1], y,'LineWidth',2,'Color',col_lines);
+    
     h_now = gca;
     h_text = text(h_now.XLim(1)+(h_now.XLim(2)-h_now.XLim(1))*0.02,...
         h_now.YLim(2)-(h_now.YLim(2)-h_now.YLim(1))*0.17, [ABC(ii) ': ' model_list2{ii}]);
     h_text.FontWeight='bold';
     h_text.FontSize=14;
     h_text.Color='w';
+    uistack(h_text,'top')
 end
 
 for i = [2 3 5 6 8 9 11 12 14:21 ]
@@ -1030,18 +1056,12 @@ ylim([0 1])
 ha(14).XColor='w';
 ha(14).YColor='w';
 
-for i = [1 4 7 10 13]
-    set(f,'CurrentAxes',ha(i))
-    if i == 13
+    set(f,'CurrentAxes',ha(13))
         hold on
         y=-[15 27];
-    else
-        y=[0 15];
-    end
     h(1) = plot(datenum(dates(1))*[1 1], y,'LineWidth',2,'Color',col_lines);
     h(2) = plot(datenum(dates(2))*[1 1], y,'LineWidth',2,'Color',col_lines);
     h(3) = plot(datenum(dates(3))*[1 1], y,'LineWidth',2,'Color',col_lines);
-end
 
 ha(22).Position(4)= 0.27;
 ha(23).Position(4)= ha(22).Position(4);
@@ -1066,9 +1086,10 @@ xlim([data_surf{ii}.time(1) data_surf{ii}.time(end)])
 set_monthly_tick(data_surf{ii}.time,gca);
 set(gca,'XTickLabelRotation',0)
 
-legendflex([h, h_obs],[model_list2 'Observation'],'interpreter','none',...
-    'anchor',{'n', 'n'},...
-    'buffer',[0 27],'nrow',1,'Color','none','box','off')
+hleg = legend([h, h_obs],[model_list2; 'Observation'],'interpreter','none',...
+    'NumColumns',5,'box','off','FontSize',11);
+hleg.Position(1:2) = [0.07    0.5];
+
 h_now = gca;
 h_text = text(h_now.XLim(2)-(h_now.XLim(2)-h_now.XLim(1))*0.05,...
     h_now.YLim(1)+(h_now.YLim(2)-h_now.YLim(1))*0.2, 'E');
@@ -1112,7 +1133,7 @@ for ii = 1:4
     'LineWidth',2)
 end
 ylim([-20 0])
-xlabel('Firn temperature (deg ^oC)','Interpreter','tex')
+xlabel('Firn temperature (^oC)','Interpreter','tex')
 box on, grid on;
 xlim([-35 1])
 
@@ -1150,8 +1171,7 @@ for i = [22 23 24]
     end
 end
 
-
-print(f, sprintf('%s/_7-Temp_mod',OutputFolder), '-djpeg')
+print(f, sprintf('%s/_7-Temp_mod',OutputFolder), '-dtiff','-r300')
 if strcmp(vis,'off')
     close(f);
 end
@@ -1415,14 +1435,11 @@ col = lines(4);
         xlabel('Firn density (kg m^{-3})','Interpreter','tex')
     end
 end
-legendflex([ model_list2, 'Observed'],...
-    'ref',gcf,...
-    'anchor',{'e','e'},...
-    'buffer',[-2 -150],...
-    'fontsize',11,...
-    'ncol',1,...
+h_leg = legend([ model_list2; 'Observed'],...
+    'NumColumns',1,...
     'interpreter','none',...
     'box','off');
+h_leg.Position(1:2) = [0.81 0.25];
 
  count = count+1;
     set(f,'CurrentAxes',ha(count))
@@ -1442,10 +1459,12 @@ legendflex([ model_list2, 'Observed'],...
     h_tit.Parent = ha(count); h_tit.Units='normalized';
     h_tit.Position(1:2) = [0.3 0.01];
 
-    print(f, sprintf('%s/_8-rho_mod',OutputFolder), '-djpeg')
+    print(f, sprintf('%s/_8-rho_mod',OutputFolder), '-dtiff', '-r300')
+
 if strcmp(vis,'off')
     close(f);
 end
+
 %%
 f = figure('OuterPosition',[0 0 8 15]);
 col_parula = hsv(4);% brewermap(4,'Paired');
@@ -1663,13 +1682,12 @@ col = lines(4);
     
 ha(2).XAxisLocation='top';
 
-h_leg = legendflex([model_list2, 'Observation'],...
-    'ref',gcf,...
-    'anchor',{'n','n'},...
-    'buffer',[0 0],...
+h_leg = legend([model_list2; 'Observation'],...
     'Interpreter','none',...
-    'nrow',2,...
+    'NumColumns',3,...
     'box','off');
+h_leg.Parent = gcf;
+h_leg.Position = [0.2 0.94 0.7 0.01];
 for k = 1:4
     ha(k).XTickLabel = ' ';
 end
@@ -1685,8 +1703,9 @@ for k = 1:8
     xlabel(ha(k),'Year');
     end
 end
-
-print(f, sprintf('%s/_9-compaction_val',OutputFolder), '-djpeg')
+orient('landscape')
+set(gcf,'Renderer','Painter')
+print(f, sprintf('%s/_9-compaction_val',OutputFolder), '-depsc')
 if strcmp(vis,'off')
     close(f);
 end
@@ -1976,7 +1995,8 @@ h_text = text(h_now.XLim(1)+(h_now.XLim(2)-h_now.XLim(1))*0.02,...
     h_now.YLim(2)-(h_now.YLim(2)-h_now.YLim(1))*0.08, 'B');
 h_text.FontWeight='bold';
 h_text.FontSize=16;
-print(f, sprintf('%s/_10-tracking_debris_horizon',OutputFolder), '-djpeg') 
+set(gcf,'Renderer','Painter');
+print(f, sprintf('%s/_10-tracking_debris_horizon',OutputFolder), '-depsc') 
 
 %% Plotting infiltration for 1966-2100
   f = figure('Visible',vis,'OuterPosition',[0 0 18 14]);
@@ -2205,39 +2225,40 @@ data_yr.SMB = data_yr.snowfall + data_yr.sublimation_mweq;
 
 col =lines(7);%brewermap(7,'lines');
 col = col([6 5 4],:);
+
 f = figure('OuterPosition',[0 0 23 11]);
 ha = tight_subplot(2,2,0.03,[0.13],[0.1]);
 set(f,'CurrentAxes',ha(1))
 hold on
-h = stairs0(MAR_CanESM2_RCP85.year,MAR_CanESM2_RCP85.SF_adj,'Linewidth',1.5,'Color',col(1,:));
-stairs0(MAR_NorESM1_RCP85.year,MAR_NorESM1_RCP85.SF_adj,'Linewidth',1.5,'Color',col(2,:))
-stairs0(data_yr.year,data_yr.snowfall*1000,'Linewidth',1.5,'Color',col(3,:))
+h = stairs0(MAR_CanESM2_RCP85.year,MAR_CanESM2_RCP85.SF_adj,'Linewidth',1,'Color',col(1,:));
+stairs0(MAR_NorESM1_RCP85.year,MAR_NorESM1_RCP85.SF_adj,'Linewidth',1,'Color',col(2,:))
+stairs0(data_yr.year,data_yr.snowfall*1000,'Linewidth',1,'Color',col(3,:))
 ylabel({'Snowfall', '(mm w.e.)'})
 uistack(h,'top')
 box on; axis tight; grid on; set(gca,'XMinorTick','on','XLim',[1966 2100],'FontSize',11)
 
 set(f,'CurrentAxes',ha(2))
 hold on
-stairs0(MAR_CanESM2_RCP85.year,MAR_CanESM2_RCP85.ME,'Linewidth',1.5,'Color',col(1,:))
-stairs0(MAR_NorESM1_RCP85.year,MAR_NorESM1_RCP85.ME,'Linewidth',1.5,'Color',col(2,:))
-stairs0(data_yr.year,data_yr.melt_mweq*1000,'Linewidth',1.5,'Color',col(3,:))
-stairs0(data_yr.year,data_yr.melt_mweq*1000,'Linewidth',1.5,'Color',col(3,:))
+stairs0(MAR_CanESM2_RCP85.year,MAR_CanESM2_RCP85.ME,'Linewidth',1,'Color',col(1,:))
+stairs0(MAR_NorESM1_RCP85.year,MAR_NorESM1_RCP85.ME,'Linewidth',1,'Color',col(2,:))
+stairs0(data_yr.year,data_yr.melt_mweq*1000,'Linewidth',1,'Color',col(3,:))
+stairs0(data_yr.year,data_yr.melt_mweq*1000,'Linewidth',1,'Color',col(3,:))
 ylabel({'Melt', '(mm w.e.)'})
 box on; axis tight; grid on; set(gca,'XMinorTick','on','XLim',[1966 2100],'FontSize',11,'YAxisLocation','right')
 
 set(f,'CurrentAxes',ha(3))
 hold on
-stairs0(MAR_CanESM2_RCP85.year,MAR_CanESM2_RCP85.RU,'Linewidth',1.5,'Color',col(1,:))
-stairs0(MAR_NorESM1_RCP85.year,MAR_NorESM1_RCP85.RU,'Linewidth',1.5,'Color',col(2,:))
-stairs0(data_yr.year,data_yr.runoff*1000,'Linewidth',1.5,'Color',col(3,:))
+stairs0(MAR_CanESM2_RCP85.year,MAR_CanESM2_RCP85.RU,'Linewidth',1,'Color',col(1,:))
+stairs0(MAR_NorESM1_RCP85.year,MAR_NorESM1_RCP85.RU,'Linewidth',1,'Color',col(2,:))
+stairs0(data_yr.year,data_yr.runoff*1000,'Linewidth',1,'Color',col(3,:))
 xlabel('Year'); ylabel({'Runoff', '(mm w.e.)'})
 box on; axis tight; grid on; set(gca,'XMinorTick','on','XLim',[1966 2100],'FontSize',11)
 
 set(f,'CurrentAxes',ha(4))
 hold on
-h(1) = stairs0(MAR_CanESM2_RCP85.year,MAR_CanESM2_RCP85.SMB_adj,'Linewidth',1.5,'Color',col(1,:));
-h(2) = stairs0(MAR_NorESM1_RCP85.year,MAR_NorESM1_RCP85.SMB_adj,'Linewidth',1.5,'Color',col(2,:));
-h(3) = stairs0(data_yr.year,data_yr.SMB_mweq*1000,'Linewidth',1.5,'Color',col(3,:));
+h(1) = stairs0(MAR_CanESM2_RCP85.year,MAR_CanESM2_RCP85.SMB_adj,'Linewidth',1,'Color',col(1,:));
+h(2) = stairs0(MAR_NorESM1_RCP85.year,MAR_NorESM1_RCP85.SMB_adj,'Linewidth',1,'Color',col(2,:));
+h(3) = stairs0(data_yr.year,data_yr.SMB_mweq*1000,'Linewidth',1,'Color',col(3,:));
 uistack(h(1),'top');
 xlabel('Year'); ylabel({'Surface mass','balance', '(mm w.e.)'})
 box on; axis tight; grid on; set(gca,'XMinorTick','on','XLim',[1966 2100],'FontSize',11,'YAxisLocation','right')
@@ -2245,13 +2266,14 @@ box on; axis tight; grid on; set(gca,'XMinorTick','on','XLim',[1966 2100],'FontS
 ha(1).XTickLabel = '';
 ha(2).XTickLabel = '';
 
-legendflex(h,{'MAR-CanESM2 RCP8.5', 'MAR-NorESM1 RCP8.5', ...
+h_leg = legend(h,{'MAR-CanESM2 RCP8.5', 'MAR-NorESM1 RCP8.5', ...
     'GEUS-CanESM2 RCP8.5'},...
-    'ref',gcf,...
-    'anchor',{'n' 'n'},...
-    'box','off',...
-    'ncol',3,...
-    'interpreter','none');
+    'FontSize',12,...
+    'Interpreter','none',...
+    'NumColumns',3,...
+    'box','off');
+h_leg.Parent = gcf;
+h_leg.Position = [0.17 0.94 0.7 0.01];
 
 
 for i = 1:4
@@ -2260,10 +2282,10 @@ for i = 1:4
     h_text = text(h_now.XLim(1)+(h_now.XLim(2)-h_now.XLim(1))*0.02,...
         h_now.YLim(2)-(h_now.YLim(2)-h_now.YLim(1))*0.15, ABC(i));
     h_text.FontWeight='bold';
-    h_text.FontSize=10;
+    h_text.FontSize=14;
 end
-
-print(f, sprintf('%s/_6-Comparison_GRL16',OutputFolder), '-djpeg') 
+orient('landscape')
+print(f, sprintf('%s/_6-Comparison_GRL16',OutputFolder), '-depsc') 
 
 
 % 

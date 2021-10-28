@@ -18,8 +18,8 @@ function [depth_alt, M_alt, avg_shallow] = ...
     ind_fixed_depth(:,ind_all_nan) = 0;
     ind_fixed_depth(end,ind_all_nan) = 1;
     % we then interpolate at each time step
-    ind_next =  boolean([zeros(1,size(M_alt,2)); ind_fixed_depth(1:end-1,:)]);
-    ind_prev =  boolean([ind_fixed_depth(2:end,:); zeros(1,size(M_alt,2))]);
+    ind_next =  [zeros(1,size(M_alt,2)); ind_fixed_depth(1:end-1,:)]==1;
+    ind_prev =  [ind_fixed_depth(2:end,:); zeros(1,size(M_alt,2))]==1;
     
     % index of time steps where deepest thermistor is closest to fixed
     % depth

@@ -34,7 +34,7 @@ for k = 1:length(VarList)
             case 'melt_mweq'
                 data{ii}.(VarList{k})=data{ii}.(VarList{k})*1000;
         end
-        stairs(data{ii}.time, data{ii}.(VarList{k})*fac,'LineWidth',1.5)
+        stairs(data{ii}.time, data{ii}.(VarList{k})*fac,'LineWidth',1)
         DV = datevec(data{ii}.time);
         yr =DV(:,1);
         lm1 = fitlm(yr(yr<2020), data{ii}.(VarList{k})(yr<2020)*fac);
@@ -98,12 +98,17 @@ for k = 1:length(VarList)
 end
 ha(end).XLabel.String='Year';
 ha(end-1).XLabel.String='Year';
-legendflex(model_list, 'ref', gcf, ...
-       'anchor',  [2 6] , ...
-       'buffer',[0 -30], ...
-       'nrow',1,'box','off', ...
-       'fontsize',ftsize,'Interpreter','none');
-   
+% legendflex(model_list, 'ref', gcf, ...
+%        'anchor',  [2 6] , ...
+%        'buffer',[0 -30], ...
+%        'nrow',1,'box','off', ...
+%        'fontsize',ftsize,'Interpreter','none');
+lgd = legend(model_list,'Orientation','horizontal','Interpreter','none');
+lgd.Position = [0.2,0.97, 0.6,0.02];
+lgd.Box='off';
+lgd.FontSize=12;
+
 orient(f,'portrait')
-print(f,NameFile,'-djpeg'); 
+set(gcf,'PaperUnits','centimeters','PaperSize',[30 29])
+print(f,NameFile,'-depsc'); 
 end

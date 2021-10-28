@@ -8,7 +8,7 @@ function [data] = SetErrorDatatoNAN(data, station,vis,OutputFolder,opt)
     if ~exist('opt','var')
         opt='plot';
     end
-     [~,sheet_list] =xlsfinfo('.\Input\ErrorData_AllStations.xlsx');
+     [~,sheet_list] =xlsfinfo('C:\Users\bav\OneDrive - Geological survey of Denmark and Greenland\Code\AWS_Processing\Input\ErrorData_AllStations.xlsx');
      
      
      if ~ismember(lower(station),lower(sheet_list))
@@ -17,7 +17,7 @@ function [data] = SetErrorDatatoNAN(data, station,vis,OutputFolder,opt)
      end
      
     ind = find(strcmp(lower(station),lower(sheet_list)));
-    [~, ~, raw] = xlsread('.\Input\ErrorData_AllStations.xlsx',sheet_list{ind});
+    [~, ~, raw] = xlsread('C:\Users\bav\OneDrive - Geological survey of Denmark and Greenland\Code\AWS_Processing\Input\ErrorData_AllStations.xlsx',sheet_list{ind});
     raw(cellfun(@(x) ~isempty(x) && isnumeric(x) && isnan(x),raw)) = {''};
     cellVectors = raw(:,[1,2,3]);
 

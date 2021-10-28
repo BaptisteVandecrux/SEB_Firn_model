@@ -341,18 +341,28 @@ if r2016aflag
     % proper text properties, then use those to alter the buggy old-style
     % legend.
     tmp = legend(legin{:}, extra{:}, 'location', 'northeast');
-    textProps = {'FontAngle','FontName','FontSize','FontUnits','FontWeight','Interpreter'};
+    textProps = {'FontAngle','FontName','FontSize','FontWeight','Interpreter'};
     tprop = get(tmp, textProps);
     delete(tmp);
     wtmp = warning('off', 'MATLAB:handle_graphics:exceptions:SceneNode'); % silence Latex interpreter thing
     [h.leg, h.obj, h.labeledobj, h.textstr] = legend(legin{:}, extra{:}, 'location', 'northeast');
+    lgd = legend(legin{:}, extra{:}, 'location', 'northeast');
+    h.leg = lgd;
+    pause(0.1)
+    h.obj = lgd.EntryContainer.NodeChildren;
+    h.textstr = lgd.String;
     warning(wtmp);
     nobj = length(h.labeledobj);
     for it = 1:length(textProps)
-        set(h.obj(1:nobj), textProps{it}, tprop{it});
+        set(h.obj, textProps{it}, tprop{it});
     end
 else
     [h.leg, h.obj, h.labeledobj, h.textstr] = legend(legin{:}, extra{:}, 'location', 'northeast');
+    lgd = legend(legin{:}, extra{:}, 'location', 'northeast');
+    h.leg = lgd;
+    pause(0.1)
+    h.obj = lgd.EntryContainer.NodeChildren;
+    h.textstr = lgd.String;
     nobj = length(h.labeledobj);
 end
 warning(S);
@@ -385,7 +395,10 @@ if cbugflag
     legin{2} = legin{2}(isrt);
     
     [h.leg, h.obj, h.labeledobj, h.textstr] = legend(legin{:}, extra{:}, 'location', 'northeast');
-
+    lgd = legend(legin{:}, extra{:}, 'location', 'northeast');
+    h.leg = lgd;
+    h.obj = lgd.EntryContainer.NodeChildren;
+    h.textstr = lgd.String;
 end
 
 % # rows and columns
@@ -476,7 +489,13 @@ rowHeight = rowHeightNm .* legpospx(4);
 if nobj == 1
     textExtent = get(h.obj(1:nobj), 'Extent');
 else
-    textExtent = cell2mat(get(h.obj(1:nobj), 'Extent'));
+    textExtent = NaN(nobj,4);
+    for i = 1:nobj
+        textExtent(i,1) = h.obj(i).LayoutInfo.LeftEdge;
+        textExtent(i,2) = h.obj(i).LayoutInfo.IconToLabelEdge;
+        textExtent(i,3) = h.obj(i).LayoutInfo.TopEdge;
+        textExtent(i,4) = h.obj(i).LayoutInfo.BottomEdge;
+    end
 end
 textWidthPx  = textExtent(:,3) .* legpospx(3);
 textHeightPx = textExtent(:,4) .* legpospx(4);
@@ -562,7 +581,7 @@ hnew.leg = axes('units', 'pixels', ...
 
 % Copy the text strings to the new legend
            
-textProps = {'FontAngle','FontName','FontSize','FontUnits','FontWeight','Interpreter','HorizontalAlignment','VerticalAlignment'};
+textProps = {'FontAngle','FontName','FontSize','FontWeight','Interpreter'};
 textVals = get(h.obj(1:nobj), textProps);
 
 if hg2flag

@@ -1,5 +1,5 @@
 station name;latitude;longitude;elevation (m);deep firn temperature (degC);slope (deg);mean accumulation (m_weq);Initial height T (m);Initial height WS (m);
-Swiss Camp;69.56833;-49.31582;1149;;;;;;
+SwissCamp;69.56833;-49.31582;1149;-5;4.97;1.05;2.85;2.98;
 CP1;69.87975;-46.98667;2022;-17.4;0.35;0.47;0;0;0.4
 NASA-U;73.84189;-49.49831;2369;-23.5;0;0.5;0;0;
 GITS;77.13781;-61.04113;1887;-24.6;0.2;0.35;0;0;

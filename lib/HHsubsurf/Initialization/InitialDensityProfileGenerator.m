@@ -9,9 +9,9 @@
 load ../matlab_functions/Core_all
 
 
-station = 'EGP';
+station = 'KAN_U';
 % Plot in the site you want
-%  PlotCore(Core,'Site','Camp Century')
+% PlotCore(Core,'CoreNum',1)
 
 % Find the index of the core you want to use
 % CoreList(CoreAvg)
@@ -110,6 +110,9 @@ switch station
     case 'GITS'
         ind = FindCore(Core,'Name','Camp Century');
 %         ind = FindCore(Core,'Name','NGRIP2001S5');
+    case 'KAN_U'
+        ind = FindCore(Core,'Name','core_1_2013');
+%         ind = FindCore(Core,'Name','NGRIP2001S5');
        
 end
 
@@ -126,7 +129,7 @@ ice_perc = Core{ind}.Data.Type_perc;
 % end
 % DensProfile = [depth, density, ice_perc];
 filename = sprintf('./Input/Initial state/DensityProfile_%s_%i.csv',station,Core{ind}.Info.DateCored.Year);
-    M  = [depth', density'];
+    M  = [depth, density];
     M_table = array2table(M,'VariableName', {'depth_m', 'density_kgm3'});
 
     writetable(M_table,filename,'Delimiter',';')

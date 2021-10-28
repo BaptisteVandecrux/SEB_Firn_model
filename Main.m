@@ -14,7 +14,11 @@ addpath(genpath('Input'),genpath('Output'))
 % possible to overwrite the default value by defining them again in the
 % "param{kk}" struct hereunder.
 
-station_list =   {'EGP'};
+station_list =   {...'NUK_K';'MIT';'KPC_L';'KPC_U';'SCO_L';'SCO_U';'TAS_L';'TAS_A';...
+    ...'QAS_L';'QAS_U';'NUK_L';'NUK_U';'KAN_L';'KAN_M';'KAN_U';...
+    ...'UPE_L';'UPE_U';'THU_L';'THU_U';...; 'NGRIP'
+    ...'SwissCamp';'GITS'
+    'TUNU-N'};
 % station_list = PROMICE_dir; %
 RCM_list = {'RACMO'};
 
@@ -27,8 +31,8 @@ for kk = 1:length(RCM_list)
     param{kk}.z_max = 50;
     param{kk}.dz_ice = param{kk}.z_max/NumLayer;
     param{kk}.verbose = 1;
-    param{kk}.lim_new_lay = param{kk}.z_max/NumLayer/10;
-
+    param{kk}.lim_new_lay = param{kk}.z_max/NumLayer/50;
+    param{kk}.shallow_firn_lim = 5;
     % param{kk}.ConductionModel = 0;      % if 1 does CONDUCTION ONLY
     % In the conduction model, the temperature profile is reseted every night
     % at 2am local time usingg thermistor string readings
@@ -80,8 +84,8 @@ for i =1:length(station_list)
 
     switch param{kk}.station
         % stations considered for the JoG2020 paper
-        case {'CP1', 'DYE-2', 'Summit', 'NASA-SE', 'NASA-E','NASA-U',...
-                'SouthDome', 'TUNU-N', 'Saddle', 'NGRIP'}
+        case {'CP1', 'Summit', 'NASA-SE', 'NASA-E','NASA-U',...
+                'SouthDome' 'Saddle'}
             param{kk}.InputAWSFile = ['../AWS_Processing/Output/Corrected/',...
                                         param{kk}.station,...
                                         '/data_', param{kk}.station, ...
@@ -91,16 +95,16 @@ for i =1:length(station_list)
             param{kk}.InputAWSFile = 'data_DYE-2_1998-2015.txt';
         case {'DYE-2_HQ' 'Dye-2_16'}
             param{kk}.InputAWSFile = 'data_DYE-2_Samira_hour.txt';
-        case {'KAN-U' 'KAN_U'}
-            param{kk}.InputAWSFile = 'data_KAN_U_combined_hour.txt';
+%         case {'KAN-U' 'KAN_U'}
+%             param{kk}.InputAWSFile = 'data_KAN_U_combined_hour.txt';
         case {'Miege' 'FA'}
             param{kk}.InputAWSFile = 'data_Miege_combined_hour.txt';
             
-        % Camp Century
-        case 'GITS'
-            param{kk}.InputAWSFile = ['../AWS_Processing/Output/GITS_',...
-                model_version, '/data_GITS_combined_hour.txt'];
-            param{kk}.OutputRoot = 'C:\Data_save\CC';
+%         % Camp Century
+%         case 'GITS'
+%             param{kk}.InputAWSFile = ['../AWS_Processing/Output/GITS_',...
+%                 model_version, '/data_GITS_combined_hour.txt'];
+%             param{kk}.OutputRoot = 'C:\Data_save\CC';
 
 %         case PROMICE_dir
 %             param{kk}.InputAWSFile = ['../AWS_Processing/Output/PROMICE/',...

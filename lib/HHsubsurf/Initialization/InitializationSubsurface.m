@@ -147,8 +147,8 @@ newscale_weq = depth_weq(depth_weq<oldscale_weq(end));
 % of both scales and then average the density for each section of the new
 % scale.
 mergedscale = union(oldscale_weq,newscale_weq);
-density_mergedscale = interp1(oldscale_weq,olddensity,mergedscale,'nearest');
-ice_perc_mergedscale = interp1(oldscale_weq,oldstrat,mergedscale,'nearest');
+density_mergedscale = interp1(oldscale_weq,olddensity,mergedscale,'next','extrap');
+ice_perc_mergedscale = interp1(oldscale_weq,oldstrat,mergedscale,'next','extrap');
 
 % In the coming section we further process the core to increase resolution.
 % The stratigraphy is used to know the percentage of ice within each core
@@ -185,8 +185,8 @@ ice_perc_mergedscale = interp1(oldscale_weq,oldstrat,mergedscale,'nearest');
     for ii = 1:nbins
         ind_in_bin = (ind_bins == ii);
 
-    mean_firndensity(ii) = sum(density_mergedscale(ind_in_bin).*thick_mergedscale_m(ind_in_bin)) ...
-        /sum(thick_mergedscale_m(ind_in_bin));
+        mean_firndensity(ii) = sum(density_mergedscale(ind_in_bin).*thick_mergedscale_m(ind_in_bin)) ...
+            /sum(thick_mergedscale_m(ind_in_bin));
 
         snowc_ini = c.cdel;
         snic_ini(ii) = 0;
@@ -278,6 +278,8 @@ if c.retmip == 0
         case {'NASA-U', 'KAN-U'}
         filename = ['./Input/Initial state/temperature/RetMIP_temperature_', c.station,'.csv'];
         case 'GITS'
+            filename = './Input/Initial state/temperature/GITS_temperature.csv';  
+        case 'TUNU-N'
             filename = './Input/Initial state/temperature/GITS_temperature.csv';  
         case 'NUK_K'
             filename = './Input/Initial state/temperature/InitialTemperatureProfile_NUK_K.csv';

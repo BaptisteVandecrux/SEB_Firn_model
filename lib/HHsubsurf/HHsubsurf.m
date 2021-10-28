@@ -370,7 +370,12 @@ for j=1:c.elev_bins
             = subsurface(pTsurf, grndc, grndd, slwc, snic, snowc, rhofirn, ...
             ptsoil_in, pdgrain, zsn, raind, snmel,  Tdeep(j),...
             snowbkt_out(k,j),c);
-
+        if any(isnan(rhofirn))
+            kewf=0;
+        end
+        if any(isnan( T_ice(:,k,j)))
+            kewf=0;
+        end
         % Update BV 2018
         if c.track_density
             density_avg_20(1,k) = c.rhoCC20_aft_comp(1);

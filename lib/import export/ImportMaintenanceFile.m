@@ -7,7 +7,7 @@ function maintenance = ImportMaintenanceFile(station)
     opts.VariableTypes = ["string", "categorical", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double", "double"];
     opts = setvaropts(opts, 1, "WhitespaceRule", "preserve");
     opts = setvaropts(opts, [1, 2], "EmptyFieldRule", "auto");
-    maintenance = readtable("C:\Users\bav\OneDrive - Geological survey of Denmark and Greenland\Code\GEUS model\Input\maintenance.xlsx", opts, "UseExcel", false);
+    maintenance = readtable(".\Input\Extra\maintenance.xlsx", opts, "UseExcel", false);
     clear opts
     maintenance.date = maintenance.T1aftercm*NaN;
     i=1;
