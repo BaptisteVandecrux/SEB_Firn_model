@@ -64,19 +64,21 @@ c = ImportConst(param);
 [RunName, c] = OutputName(c);
 diary(sprintf('%s/log.txt',c.OutputFolder));
 
-[time, year, day, hour, pres,...
-    T1, T2, z_T1, z_T2, o_T1,o_T2, ...
-    RH1, RH2, z_RH1, z_RH2, o_RH1, o_RH2, ...
-    WS1, WS2, ~, z_WS2, o_WS1, o_WS2,...
-    SRin, SRout, LRin, LRout, T_ice_obs, ...
-    depth_thermistor, Surface_Height, Tsurf_obs, data_AWS, c] = ...
-    ExtractAWSData(c);
-
 if c.retmip
     [data_AWS,Tsurf_obs, pres, T1, T2, z_T1, z_T2, ...
         o_T1, o_T2,RH1, RH2, z_RH1, z_RH2, ...
         o_RH1, o_RH2,WS1, WS2, ~, z_WS2, ...
-        o_WS1, o_WS2, SRin, SRout, LRin, LRout, c] = PrepareForRetMIP(c);
+        o_WS1, o_WS2, SRin, SRout, LRin, LRout, time, year, day, hour, c] = PrepareForRetMIP(c);
+        T_ice_obs = [];
+        depth_thermistor = [];
+else
+    [time, year, day, hour, pres,...
+        T1, T2, z_T1, z_T2, o_T1,o_T2, ...
+        RH1, RH2, z_RH1, z_RH2, o_RH1, o_RH2, ...
+        WS1, WS2, ~, z_WS2, o_WS1, o_WS2,...
+        SRin, SRout, LRin, LRout, T_ice_obs, ...
+        depth_thermistor, Surface_Height, Tsurf_obs, data_AWS, c] = ...
+        ExtractAWSData(c);
 end
 
 [elev, pres, ~, ~, ~, SRin, LRin, rho_atm, nu, ~, ~, Tdeep] ...
@@ -279,22 +281,16 @@ for j=1:c.elev_bins
             end
 
             % SURFACE ENERGY BUDGET ---------------------------------------
-
             [meltflux(k,j), Tsurf(k,j), dTsurf, EB_prev, stop] ...
                 = SurfEnergyBudget (SRnet, LRin(k,j), Tsurf(k,j), k_eff,thick_first_lay, ...
                 T_ice(:,k,j), T_rain(k,j),...
                 dTsurf, EB_prev, SHF(k,j), LHF(k,j), rainfall(k,j),c);
-% scatter(findbalance,Tsurf(k,j))
-% xlim([0 iter_max_EB])
-% title(o_THF)
-% pause(0.001)
-
+            
                 if iter_max_EB == 1
                     % if we are using surface temperature it might have been
                     % modified by SurfEnergyBudget. So we assign it again.
                     Tsurf(k,j) = Tsurf_obs(k); 
                 end             
-
             if stop
                 break
             end
@@ -316,28 +312,33 @@ for j=1:c.elev_bins
     % in the case of the conduction model, the mass budget is calculated as
     % follows
         if c.ConductionModel == 1
-            smoothed_Surface_Height= smooth(Surface_Height,24*7);
-            if k>1
-                dSurface_Height= -(smoothed_Surface_Height(k) - smoothed_Surface_Height(k-1)); %in real m
+            melt_mweq(k,j) = 0;
+            c.liqmax =0;
+            c.calc_CLliq = 0;
+            Tsurf(k,j) = ((LRout(k) - (1-c.em)*LRin(k)) /(c.em*c.sigma))^(1/4);
+            if isnan(Tsurf(k,j))
+                Tsurf(k,j) = last_no_nan;
             else
+                last_no_nan = Tsurf(k,j);
+            end
+            % Calculating surface height change, snowfall and sublimaition
+            if k==1
+                smoothed_Surface_Height= smooth(Surface_Height,24*7);
                 dSurface_Height= 0;
+            else
+                dSurface_Height= -(smoothed_Surface_Height(k) - smoothed_Surface_Height(k-1)); %in real m
             end
             if dSurface_Height<= 0
                 % if the surface height increase, it means that snow is
                 % falling
-                melt_mweq(k,j) = 0;
                 snowfall(k,j) = -dSurface_Height*c.rho_snow(k,j)/c.rho_water; %in m weq
                 sublimation_mweq(k,j) = 0;
             else
                 %else we just say it has sublimated (quick way to make the
                 %matter disappear in the subsurface scheme)
-                melt_mweq(k,j) = 0; %in m weq
                 sublimation_mweq(k,j) = -dSurface_Height*rho(1, k)/c.rho_water;
                 snowfall(k,j) = 0;
             end
-            c.liqmax =0;
-            c.calc_CLliq = 0;
-            Tsurf(k,j) = ((LRout(k) - (1-c.em)*LRin(k)) /(c.em*c.sigma))^(1/4);
         end
         
         % ========== Step 7/*:  Sub-surface model ====================================
@@ -417,11 +418,34 @@ for j=1:c.elev_bins
         % for the conduction model the temperature profile can be resetted
         % at fixed interval
         if c.ConductionModel == 1
+            % we update once per day
             if (mod(k-1, 24) == 0)
                 if sum(~isnan(T_ice_obs(k,:)))>0
                     [Tsurf(k,j), T_reset] = ...
                         ResetTemp(depth_thermistor, LRin, LRout, T_ice_obs, ...
                         rho, T_ice,time, k, c);
+%                     figure
+                    depth_act = cumsum(c.cdel .*c.rho_water ./rho(:,k));
+                    depth_act = [0; depth_act];
+
+%                     scatter(depth_thermistor(k,depth_thermistor(k,:)~=0),...
+%                         T_ice_obs(k,depth_thermistor(k,:) ~= 0), 'o')
+%                     hold on
+%                     stairs(depth_act(1:end-1),T_ice(:,k,j)-c.T_0)
+                    
+                T_ice(~isnan(T_reset),k,j) = T_reset(~isnan(T_reset));
+%                     stairs(depth_act(1:end-1),T_ice(:,k,j)-c.T_0)
+%                     legend('data','before reset','after reset','Location','South')
+%                     xlabel('Depth (m)')
+%                     ylabel('Temperature (deg C)')
+%                     title(sprintf('%s',datestr(datenum(time(k),0,0))))
+%                     view([90 90])
+                    % updating thermal constants after temperature update
+                    [zso_capa, zso_cond] = ice_heats (T_ice, c);
+                    [grndc, grndd, ~, ~]...
+                        = update_tempdiff_params (rho(:,k), Tdeep(j)                    ...
+                        , snowc, snic, T_ice(:,k,j), zso_cond, zso_capa, c);
+
                 end
             end            
         end
@@ -429,7 +453,7 @@ for j=1:c.elev_bins
         % MODEL RUN PROGRESS ----------------------------------------------
         if c.verbose == 1
         if (mod(k-1 , 24) == 0)
-            fprintf('%.2f,day of the year: %i.\n',time(k), day(k)); % print daily (24) time progress for k being hourly
+            fprintf('%.2f,day of the year: .\n',time(k)); % print daily (24) time progress for k being hourly
         end
         end
 
