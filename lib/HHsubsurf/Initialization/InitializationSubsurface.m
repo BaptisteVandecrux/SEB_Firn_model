@@ -57,7 +57,7 @@ if c.retmip == 0
             warning('Missing initial density profile for requested station.');
     end
 else
-    filename = ['.\RetMIP\Input files\density\RetMIP_density_', c.station,'.csv'];
+    filename = ['.\Input\Initial state\density\RetMIP_density_IMAU_aws4.csv'];
 end
 disp('File used for firn density initialization:')
 disp(filename)
@@ -236,7 +236,7 @@ depth_act = cumsum(c.cdel .*c.rho_water ./rhofirn_ini(:,1));
 
 if c.verbose == 1
     f = figure('Visible','on','OuterPosition',[0 0 8 18]);
-stairs([0; depth(1:end-1)],olddensity,'LineWidth',2)
+    stairs([0; depth(1:end-1)],olddensity,'LineWidth',2)
     hold on
     stairs([0; depth_act(1:end-1)],rhofirn_ini, 'LineWidth',1.5)
     plot([0, depth_weq(end-1)],[c.rho_ice, c.rho_ice],'k')
@@ -249,8 +249,7 @@ stairs([0; depth(1:end-1)],olddensity,'LineWidth',2)
     ylabel('Density (kg m^{-3})','Interpreter','tex')
     view([90 90])
     title(c.station)
-        print(f,sprintf('%s/Initial_rho.tif',c.OutputFolder),'-dtiff')
-
+    print(f,sprintf('%s/Initial_rho.tif',c.OutputFolder),'-dtiff')
 end
 
 %% ================= Initial temperature profile =========================
@@ -319,7 +318,7 @@ if c.retmip == 0
     end
 
 else
-    filename = ['.\RetMIP\Input files\temperature\RetMIP_temperature_', c.station,'.csv'];
+    filename = ['.\Input\Initial state\temperature\RetMIP_temperature_IMAU_aws4.csv'];
 end
 
     if ~isempty(filename)

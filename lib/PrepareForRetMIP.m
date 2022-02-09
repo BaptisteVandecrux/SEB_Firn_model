@@ -1,11 +1,12 @@
 function [data_AWS,Tsurf_obs, pres, T1, T2, z_T1, z_T2, ...
     o_T1, o_T2,RH1, RH2, z_RH1, z_RH2, ...
     o_RH1, o_RH2,WS1, WS2, z_WS1, z_WS2, ...
-    o_WS1, o_WS2, SRin, SRout, LRin, LRout, c] = PrepareForRetMIP(c)
+    o_WS1, o_WS2, SRin, SRout, LRin, LRout, time, year, day, hour, c] = PrepareForRetMIP(c)
 
 % for the RetMIP forcing, we need to by-pass the weather data forcing
     % and use the prescribed melt and skin temperature directly
-    filename = sprintf('./RetMIP/Input files/surface/RetMIP_%s.csv',c.station);
+%     filename = sprintf('./RetMIP/Input files/surface/RetMIP_%s.csv',c.station);
+    filename = c.InputAWSFile;
     delimiter = ';';
     startRow = 2;
     formatSpec = '%{dd-MMM-yyyy HH:mm:ss}D%f%f%f%[^\n\r]';

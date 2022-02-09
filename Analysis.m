@@ -44,12 +44,12 @@ vis = 'off';        % make the plot visible or not (only plotted in files)
     load(strcat(OutputFolder,'/run_param.mat'))
     c.OutputFolder = OutputFolder;
     % extract surface variables
-    switch c.station
-        case 'DYE-2'
-            namefile = sprintf('%s/%s_surf-bin-1.nc',OutputFolder,c.station);
-        otherwise
-            namefile = sprintf('%s/surf-bin-%i.nc',OutputFolder,1);
-    end
+%     switch c.station
+%         case 'DYE-2'
+    namefile = sprintf('%s/%s_surface.nc',OutputFolder,c.station);
+%         otherwise
+%             namefile = sprintf('%s/surf-bin-%i.nc',OutputFolder,1);
+%     end
     finfo = ncinfo(namefile);
     names={finfo.Variables.Name};
     for i= 1:size(finfo.Variables,2)
@@ -59,16 +59,17 @@ vis = 'off';        % make the plot visible or not (only plotted in files)
     % extract subsurface variables
     varname= {'compaction' 'dgrain' 'rfrz' 'rho' 'slwc' 'snowc' 'snic' 'T_ice'};
     for i =1:length(varname)
-        switch c.station
-            case 'DYE-2'
-                namefile = sprintf('%s/%s_%s_bin_1.nc',...
-                    OutputFolder,c.station,varname{i});
-        end
-        try eval(sprintf('%s = ncread(''%s'',''%s'');', varname{i}, namefile,varname{i}));
-        catch me
-            namefile = sprintf('%s/%s_bin_%i.nc',OutputFolder,varname{i},1);
-            eval(sprintf('%s = ncread(''%s'',''%s'');', varname{i}, namefile,varname{i}));
-        end
+%         switch c.station
+%             case 'DYE-2'
+        namefile = sprintf('%s/%s_%s.nc',...
+            OutputFolder,c.station,varname{i});
+%         end
+%         try 
+        eval(sprintf('%s = ncread(''%s'',''%s'');', varname{i}, namefile,varname{i}));
+%         catch me
+%             namefile = sprintf('%s/%s_bin_%i.nc',OutputFolder,varname{i},1);
+%             eval(sprintf('%s = ncread(''%s'',''%s'');', varname{i}, namefile,varname{i}));
+%         end
     end
     fprintf('\nData extracted from nc files.\n');
 
@@ -112,21 +113,30 @@ if ~isfield(c,'verbose')
 end
 % extracting observed
 
-[time_yr, year, day, hour, pres,...
-    T1, T, z_T1, H_instr_temp, o_T1,o_T2, ...
-    RH1, RH, z_RH1, H_instr_hum, o_RH1, o_RH2, ...
-    WS1, WS, z_WS1, H_instr_wind, o_WS1, o_WS2,...
-    SRin, SRout, LRin, LRout, T_ice_obs, ...
-    depth_thermistor, Surface_Height, Tsurf_obs, data_AWS, c] = ...
-    ExtractAWSData(c);
+if c.retmip
+    [data_AWS,Tsurf_obs, pres, T1, T2, z_T1, z_T2, ...
+        o_T1, o_T2,RH1, RH2, z_RH1, z_RH2, ...
+        o_RH1, o_RH2,WS1, WS2, ~, z_WS2, ...
+        o_WS1, o_WS2, SRin, SRout, LRin, LRout, time_yr, year, day, hour, c] = PrepareForRetMIP(c);
+        T_ice_obs = [];
+        depth_thermistor = [];
+else
+    [time_yr, year, day, hour, pres,...
+        T1, T2, z_T1, z_T2, o_T1,o_T2, ...
+        RH1, RH2, z_RH1, z_RH2, o_RH1, o_RH2, ...
+        WS1, WS2, ~, z_WS2, o_WS1, o_WS2,...
+        SRin, SRout, LRin, LRout, T_ice_obs, ...
+        depth_thermistor, Surface_Height, Tsurf_obs, data_AWS, c] = ...
+        ExtractAWSData(c);
+end
 
 time_obs = datenum(year,1,day,hour,0,0);
 depth_obs = depth_thermistor';
 depth_obs(depth_obs==0) = NaN;
 
-T = T' + c.T_0;
-T(isnan(depth_obs)) = NaN;
-TT_obs= repmat(time_obs',size(depth_obs,1),1);
+% T = T' + c.T_0;
+% T(isnan(depth_obs)) = NaN;
+% TT_obs= repmat(time_obs',size(depth_obs,1),1);
 % depth scale
 depth_act_save = depth_act;
 depth_act = vertcat(zeros(size(depth_act(1,:))), depth_act);
