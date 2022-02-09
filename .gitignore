@@ -7,3 +7,6 @@ Plot scripts
 desktop.ini
 *.asv
 *.bak
+Input/Initial state/temperature/RetMIP_temperature_IMAU_aws4.csv
+Input/Initial state/density/RetMIP_density_IMAU_aws4.csv
+Input/Weather data/data_KAN_U_2012-2016.txt
