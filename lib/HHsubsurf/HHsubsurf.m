@@ -134,22 +134,22 @@ for j=1:c.elev_bins
     c.Tdeep = Tdeep(j);
 
     Tsurf(1,j) = mean(T2(1:24))-2.4;
-% The 2 m air temperature and IR skin temperature are similar during peak 
-% solar irradiance, with the mean difference in temperature equal to -0.32oC 
-% when incoming solar radiation is greater than 600 W m2. There is a larger 
-% difference between the two during the nighttime, with 2m air temperature
-% higher than skin temperature by an average of 2.4??C when incoming 
-% radiation is less than 200 Wm2. 
-%  https://doi.org/10.5194/tc-12-907-2018
+    % The 2 m air temperature and IR skin temperature are similar during peak 
+    % solar irradiance, with the mean difference in temperature equal to -0.32oC 
+    % when incoming solar radiation is greater than 600 W m2. There is a larger 
+    % difference between the two during the nighttime, with 2m air temperature
+    % higher than skin temperature by an average of 2.4??C when incoming 
+    % radiation is less than 200 Wm2. 
+    %  https://doi.org/10.5194/tc-12-907-2018
 
     [T_ice, rhofirn,rho(:,1),snic, snowc, slwc, pdgrain(:,1)] = ...
         InitializationSubsurface(T_ice_obs, depth_thermistor, T_ice, ...
         time, Tsurf(1,j), j, c);
     
     % preparing some variables
-%     theta1 = T1(:,j) + z_T1(:,j) * c.g / c.c_pd;
+    %     theta1 = T1(:,j) + z_T1(:,j) * c.g / c.c_pd;
     theta2 = T2(:,j) + z_T2(:,j) * c.g / c.c_pd;
-%     theta_v1 = theta1 .* (1 + ((1 - c.es)/c.es).*q1);
+    %     theta_v1 = theta1 .* (1 + ((1 - c.es)/c.es).*q1);
     theta2_v = theta2 .* (1 + ((1 - c.es)/c.es).*q2);
 
     % Total precipitation in m of water
@@ -217,7 +217,7 @@ for j=1:c.elev_bins
             o_THF(:) = 1;
         end
     end
-%     figure
+    
     % START OF TIME LOOP -----------------------------------------------------------------------
     for k = 1:c.M
         %=========== Step 1/*: Update snowthickness and instrument heights ====================================
@@ -308,9 +308,8 @@ for j=1:c.elev_bins
         sublimation_mweq(k,j) = LHF(k,j)*c.dt_obs/c.L_sub/c.rho_water; % in mweq
         % positive LHF -> deposition -> dH_subl positive
 
-
-    % in the case of the conduction model, the mass budget is calculated as
-    % follows
+        % in the case of the conduction model, the mass budget is calculated as
+        % follows
         if c.ConductionModel == 1
             melt_mweq(k,j) = 0;
             c.liqmax =0;
@@ -344,7 +343,7 @@ for j=1:c.elev_bins
         % ========== Step 7/*:  Sub-surface model ====================================
         GF(2:c.z_ice_max) = -k_eff(2:c.z_ice_max).*(T_ice(1:c.z_ice_max-1,k,j)-T_ice(2:c.z_ice_max,k,j))./c.dz_ice;
         GFsurf(k,j) =-(k_eff(1)) * (Tsurf(k,j)- T_ice(2,k,j)) / thick_first_lay;
-%         grndhflx = GFsurf(k,j);       
+        %    grndhflx = GFsurf(k,j);       
         pTsurf = Tsurf(k,j);
         ptsoil_in = T_ice(:,k,j);
         zsn = snowfall(k,j) + sublimation_mweq(k,j);
@@ -371,27 +370,6 @@ for j=1:c.elev_bins
             = subsurface(pTsurf, grndc, grndd, slwc, snic, snowc, rhofirn, ...
             ptsoil_in, pdgrain, zsn, raind, snmel,  Tdeep(j),...
             snowbkt_out(k,j),c);
-        if any(isnan(rhofirn))
-            kewf=0;
-        end
-        if any(isnan( T_ice(:,k,j)))
-            kewf=0;
-        end
-        % Update BV 2018
-        if c.track_density
-            density_avg_20(1,k) = c.rhoCC20_aft_comp(1);
-            density_avg_20(2,k) = c.rhoCC20_aft_snow(1);
-            density_avg_20(3,k) = c.rhoCC20_aft_subl(1);
-            density_avg_20(4,k) = c.rhoCC20_aft_melt(1);
-            density_avg_20(5,k) = c.rhoCC20_aft_runoff(1);
-            density_avg_20(6,k) = c.rhoCC20_aft_rfrz(1);
-            CC20(1,k) = c.rhoCC20_aft_comp(2);
-            CC20(2,k) = c.rhoCC20_aft_snow(2);
-            CC20(3,k) = c.rhoCC20_aft_subl(2);
-            CC20(4,k) = c.rhoCC20_aft_melt(2);
-            CC20(5,k) = c.rhoCC20_aft_runoff(2);
-            CC20(6,k) = c.rhoCC20_aft_rfrz(2);
-        end
         
         % bulk density
         rho(:,k)= (snowc + snic)./...
@@ -406,7 +384,6 @@ for j=1:c.elev_bins
             % Update BV2017: With the layer-conservative model, the surface height
             % can be calculated outside of the sub-surface scheme assuming that the
             % bottom of the collumn remains at constant depth
-
             % cumulative dry compaction
             H_comp(k,j) = H_comp(k-1,j) + dH_comp; %in real m
         end
@@ -424,23 +401,9 @@ for j=1:c.elev_bins
                     [Tsurf(k,j), T_reset] = ...
                         ResetTemp(depth_thermistor, LRin, LRout, T_ice_obs, ...
                         rho, T_ice,time, k, c);
-%                     figure
                     depth_act = cumsum(c.cdel .*c.rho_water ./rho(:,k));
                     depth_act = [0; depth_act];
-
-%                     scatter(depth_thermistor(k,depth_thermistor(k,:)~=0),...
-%                         T_ice_obs(k,depth_thermistor(k,:) ~= 0), 'o')
-%                     hold on
-%                     stairs(depth_act(1:end-1),T_ice(:,k,j)-c.T_0)
-                    
-                T_ice(~isnan(T_reset),k,j) = T_reset(~isnan(T_reset));
-%                     stairs(depth_act(1:end-1),T_ice(:,k,j)-c.T_0)
-%                     legend('data','before reset','after reset','Location','South')
-%                     xlabel('Depth (m)')
-%                     ylabel('Temperature (deg C)')
-%                     title(sprintf('%s',datestr(datenum(time(k),0,0))))
-%                     view([90 90])
-                    % updating thermal constants after temperature update
+                    T_ice(~isnan(T_reset),k,j) = T_reset(~isnan(T_reset));
                     [zso_capa, zso_cond] = ice_heats (T_ice, c);
                     [grndc, grndd, ~, ~]...
                         = update_tempdiff_params (rho(:,k), Tdeep(j)                    ...
@@ -480,8 +443,7 @@ for j=1:c.elev_bins
     
     rainHF = c.rho_water.*c.c_w(1).*rainfall./c.dt_obs.*(T_rain-Tsurf(:,j));
     
-
-%% Processing few variables
+    % Processing few variables
     thickness_act = sav.snowc.*(c.rho_water./sav.rhofirn )+ ...
         sav.snic .*(c.rho_water/c.rho_ice);
     depth_act = cumsum(thickness_act, 1);
@@ -498,7 +460,7 @@ for j=1:c.elev_bins
         sublimation_mweq(:,j) = min(0,data_AWS.acc_subl_mmweq/1000); 
     end
     
-    %% Writing data to net cdf
+    % Writing data to net cdf
     data_surf = {year,       day,            hour,   LRin(:,j), ...
             c.em*c.sigma*Tsurf(:,j).^4+(1-c.em)*LRin(:,j), SHF(:,j), LHF(:,j), ...
             GFsurf(:,j),    rainHF(:,j),        meltflux(:,j),  ...
@@ -512,11 +474,11 @@ for j=1:c.elev_bins
     data_subsurf = {T_ice(:,:,j) rho sav.rhofirn sav.slwc sav.snic sav.snowc sav.pdgrain...
         refreezing(:,:,j) sav.subsurf_compaction};
 
-try WritingModelOutput(time,data_surf,depth_act, data_subsurf,j,  c)
-catch me 
-	error('Writing failed')
-end
-end  % END OF SPATIAL LOOP -----------------------------------------------------------------------
+    try WritingModelOutput(time,data_surf,depth_act, data_subsurf,j,  c)
+    catch me 
+        error('Writing failed')
+    end
+end  % END OF SPATIAL LOOP 
 
 save(strcat(c.OutputFolder,'/run_param.mat'),'c')
 
@@ -525,7 +487,7 @@ if c.THF_calc == 3
     dlmwrite(sprintf('./Output/THF study/THF_%s_%i.csv',c.station ,c.THF_calc),M,'Delimiter',',','precision',9);
     % disp ('Done...')
 end
-    toc
+toc
 
 end
 

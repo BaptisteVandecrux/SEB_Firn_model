@@ -86,29 +86,6 @@ else
     oldstrat=zeros(size(olddensity));
 end
 
-if c.perturb_rho_ini ~= 0
-    old_thickness = depth;
-    old_thickness(2:end ) = depth(2:end) - depth(1:end-1);
-    [~, ind_20] = min(abs(depth-20));
-
-    olddensity_avg = sum(olddensity(1:ind_20).*old_thickness(1:ind_20)) / depth(ind_20);
-    perturb_olddensity = olddensity(1:ind_20)...
-        + c.perturb_rho_ini * depth(ind_20)/length(1:ind_20)./ old_thickness(1:ind_20);
-    perturb_olddensity_avg = sum(perturb_olddensity.*old_thickness(1:ind_20))...
-        / depth(ind_20);
-    perturb_olddensity(perturb_olddensity>917)=917;
-
-    f = figure('Visible','on','OuterPosition',[0 0 8 18]);
-    plot(olddensity,-depth)
-    hold on
-    plot(perturb_olddensity,-depth(1:ind_20))
-    ylabel('Depth (m)')
-        xlabel('Density (kg m^{-3})','Interpreter','tex')
-    legend('Original','After perturbation')
-    title(sprintf('Initial density perturbated\non average by %0.1f kg/m-3 \nin the upper 20 m.',perturb_olddensity_avg - olddensity_avg))
-
-    olddensity(1:ind_20) = perturb_olddensity;
-end
 %the depthweq of each layer depend on the thickness_weq of all overlying
 %layers. It is therefore necessary to fill missing data. Missing density
 %are thus replaced by 350 kg/m^3.
@@ -148,53 +125,25 @@ newscale_weq = depth_weq(depth_weq<oldscale_weq(end));
 % scale.
 mergedscale = union(oldscale_weq,newscale_weq);
 density_mergedscale = interp1(oldscale_weq,olddensity,mergedscale,'next','extrap');
-ice_perc_mergedscale = interp1(oldscale_weq,oldstrat,mergedscale,'next','extrap');
 
-% In the coming section we further process the core to increase resolution.
-% The stratigraphy is used to know the percentage of ice within each core
-% section. Then it is used to initiate snic. The firn remaining in each
-% section is used to initiate snowc and the weight of the section (once
-% subtracted the weight of ice content) is used to initiate prhofirn.
+% calculating the thickness of each layer in merged scale
+thick_mergedscale_weq = mergedscale;
+thick_mergedscale_weq(2:length(mergedscale)) = mergedscale(2:end) - mergedscale(1:end-1);
+thick_mergedscale_m = thick_mergedscale_weq * c.rho_water ./ density_mergedscale;
 
-    % calculating the thickness of each layer in merged scale
-    thick_mergedscale_weq = mergedscale;
-    thick_mergedscale_weq(2:length(mergedscale)) = mergedscale(2:end) - mergedscale(1:end-1);
-    thick_mergedscale_m = thick_mergedscale_weq * c.rho_water ...
-        ./ density_mergedscale;
+ind_bins = discretize(mergedscale,[0; depth_weq],'IncludedEdge','right');
+nbins = length(unique(ind_bins));
+mean_firndensity = zeros(nbins, 1);
 
-    % calculating the volume and mass of ice contained in each section
-    icevol_mergedscale_m = thick_mergedscale_m .* ice_perc_mergedscale/100;
-    icemass_mergedscale_kg = icevol_mergedscale_m * 800; 
-    % in line above 600 is taken for density of ice, it is low but it was
-    % noticed that putting higher values  leads to very low density for the
-    % firn left in the section.
-
-    % calculating the volume and mass of firn left in the section excluding
-    % the ice content
-    firnvol_mergedscale_m = thick_mergedscale_m .* (1-ice_perc_mergedscale/100);
-    firnmass_mergedscale_kg = density_mergedscale .* thick_mergedscale_m - icemass_mergedscale_kg;
-    firndensity_mergedscale = firnmass_mergedscale_kg ./ firnvol_mergedscale_m;
-    firndensity_mergedscale(firnvol_mergedscale_m==0)=500; % giving an aritificial density of 500 to the firn in sections only made of ice
-    
-    ind_bins = discretize(mergedscale,[0; depth_weq],'IncludedEdge','right');
-    nbins = length(unique(ind_bins));
-    mean_firndensity = zeros(nbins, 1);
-
-    % now we either sum or average the ice content, snow content and firn
-    % density on the model depth scale
-    for ii = 1:nbins
-        ind_in_bin = (ind_bins == ii);
-
-        mean_firndensity(ii) = sum(density_mergedscale(ind_in_bin).*thick_mergedscale_m(ind_in_bin)) ...
-            /sum(thick_mergedscale_m(ind_in_bin));
-
-        snowc_ini = c.cdel;
-        snic_ini(ii) = 0;
-        slwc_ini(ii) = 0;
-        if snowc_ini(ii)<0
-            eweojjnjv;
-        end
-    end
+% now we average the firn density on the model depth scale
+for ii = 1:nbins
+    ind_in_bin = (ind_bins == ii);
+    mean_firndensity(ii) = sum(density_mergedscale(ind_in_bin).*thick_mergedscale_m(ind_in_bin)) ...
+        /sum(thick_mergedscale_m(ind_in_bin));
+    snowc_ini = c.cdel;
+    snic_ini(ii) = 0;
+    slwc_ini(ii) = 0;
+end
  
 % giving the observed density (on appropriate scale) as initial value
 % for the subsurface density profile
@@ -497,7 +446,4 @@ if c.verbose == 1
     view([90 90])
     print(f,sprintf('%s/Initial_slwc.tif',c.OutputFolder),'-dtiff')
 end
-
-%% ========== add other initialization here ========================
-
 end

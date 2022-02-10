@@ -52,28 +52,18 @@ param.year    =  0;
 % "rows"  is set so that the appropriate values will be read in the weather 
 % data. To run the model only from 1 to rows, just leave param.year=0.
 
-param.track_density = 0;
 param.avoid_runoff = 0; 
-param.retmip = 0;
-
-% PROMICE_dir = dir('../AWS_Processing/Output/PROMICE/');
-% PROMICE_dir = {PROMICE_dir.name};
-% PROMICE_dir(1:2) = [];
-% for i = 1:length(PROMICE_dir)
-%     PROMICE_dir{i} = PROMICE_dir{i}(1:(end-6));
-% end
+param.retmip = 1;
 param.vis = 'off';
 
-%   'IMAU_aws14',
 model_version = 'imau_antarctica';
-model_version = '';
-station_list = {'KAN_U'};%, IMAU_aws5','IMAU_aws6','IMAU_aws11'...
+station_list = {'IMAU_aws4'};%, IMAU_aws5','IMAU_aws6','IMAU_aws11'...
   % 'IMAU_aws15', 'IMAU_aws16', 'IMAU_aws17', 'IMAU_aws18', 'IMAU_aws19'};
 for i =1:length(station_list)
     param.station = station_list{i};
     param.InputAWSFile = ...
         ['../SEB-Firn Antarctica/Antarctica/data formatted/', station_list{i}, '_high-res_meteo.csv'];
-    param.InputAWSFile = 'Input\Weather data\data_KAN_U_2012-2016.txt';
+%     param.InputAWSFile = 'Input\Weather data\data_KAN_U_2012-2016.txt';
     [RunName, c] = HHsubsurf(param);
     OutputFolder = ['Output/', RunName];
     vis = 'on';
