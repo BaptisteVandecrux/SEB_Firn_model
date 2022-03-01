@@ -31,10 +31,10 @@ end
     
 if time(1)<3000
     % then it is decimal year
-    time = datenum(time,1,1) - datenum(1900,1,1,0,0,0);
+    time = datenum(time,1,1) - datenum(1900,1,1,0,0,0)-1;
 elseif time(1)>401767
     % then it is in Matlab format
-    time = time - datenum(1900,1,1,0,0,0);
+    time = time - datenum(1900,1,1,0,0,0)-1;
 else
     % then it is already in the good format
     warning('Time vector already in days since 1900-1-1 0:0:0')
