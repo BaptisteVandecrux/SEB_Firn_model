@@ -37,22 +37,22 @@ coldcontent=zeros(c.jpgrnd,1);
 cfrozen=zeros(c.jpgrnd,1);
 
 % Determine layer cold content and convert mass from liq to ice
-cfrozen(1:c.jpgrnd) = psnowc(1:c.jpgrnd) + psnic(1:c.jpgrnd);
-coldcontent(1:c.jpgrnd) = max(0, (c.T_0-ptsoil(1:c.jpgrnd)));
+cfrozen = psnowc + psnic;
+coldcontent = max(0, (c.T_0-ptsoil));
 
 % update summer 2013 by BV
 % only a fraction C_k * dt of the potential refrozen water is allowed to
 % refreeze during the time step dt. See Illangaskare et al. 1990, eq. 13
-zpotref(1:c.jpgrnd) = c.Ck * ...
+zpotref = c.Ck * ...
     coldcontent .* cpiceF(ptsoil) .* cfrozen / c.L_fus;
-zrfrz(1:c.jpgrnd)= min(zpotref , pslwc);  
+zrfrz= min(zpotref , pslwc);  
     
-pslwc(1:c.jpgrnd) =  pslwc(1:c.jpgrnd) - zrfrz(1:c.jpgrnd);
+pslwc =  pslwc - zrfrz;
 psnic = psnic + zrfrz;
-ptsoil_old = ptsoil;
+
 % Update temperature with c.latent heat of freezing
-ptsoil(1:c.jpgrnd) = ptsoil(1:c.jpgrnd) + ...
-    zrfrz(1:c.jpgrnd).* c.L_fus./( cpiceF(273.15).*(psnic(1:c.jpgrnd)-zrfrz(1:c.jpgrnd) +...
-    psnowc(1:c.jpgrnd)) );
+ptsoil = ptsoil + ...
+    zrfrz.* c.L_fus./( cpiceF(273.15).*(psnic-zrfrz +...
+    psnowc) );
 % pts = ptsoil(1);
 end

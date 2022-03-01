@@ -354,6 +354,7 @@ for j=1:c.elev_bins
         if c.retmip
             zsn = data_AWS.acc_subl_mmweq(k)/1000;
             snmel = data_AWS.melt_mmweq(k)/1000;
+            pTsurf = Tsurf_obs(k);
         end
         
         if k==1
@@ -415,9 +416,9 @@ for j=1:c.elev_bins
 
         % MODEL RUN PROGRESS ----------------------------------------------
         if c.verbose == 1
-        if (mod(k-1 , 24) == 0)
-            fprintf('%.2f,day of the year: .\n',time(k)); % print daily (24) time progress for k being hourly
-        end
+            if (mod(k-1 , 24) == 0)
+                fprintf('%.2f,day of the year: .\n',time(k)); % print daily (24) time progress for k being hourly
+            end
         end
 
         %SAVING SOME SUBSURFACE VARIABLES --------------------------------------------
@@ -432,12 +433,12 @@ for j=1:c.elev_bins
             sav. subsurf_compaction = zeros(c.jpgrnd,c.M);
         end
         
-        sav. slwc(:,k) = slwc;
-        sav. snic(:,k) = snic;
-        sav. snowc(:,k) = snowc;
-        sav. pdgrain(:,k) = pdgrain;
-        sav. rhofirn(:,k) = rhofirn;
-        sav. subsurf_compaction(:,k) = compaction;
+        sav.slwc(:,k) = slwc;
+        sav.snic(:,k) = snic;
+        sav.snowc(:,k) = snowc;
+        sav.pdgrain(:,k) = pdgrain;
+        sav.rhofirn(:,k) = rhofirn;
+        sav.subsurf_compaction(:,k) = compaction;
         sav.z_T(k) = z_T2(k);
     end  % END OF TIME LOOP -----------------------------------------------------------------------
     

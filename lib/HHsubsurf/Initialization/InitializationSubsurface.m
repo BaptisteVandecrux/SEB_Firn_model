@@ -77,14 +77,8 @@ end
 fclose(fileID);
 
 out = [dataArray{1:end-1}];
-
 depth = out(:,1); %real depth scale
 olddensity = out(:,2); %density in kg/m^3 on the old real depth scale
-if size(out,2)>2
-    oldstrat = out(:,3); %density in kg/m^3 on the old real depth scale
-else
-    oldstrat=zeros(size(olddensity));
-end
 
 %the depthweq of each layer depend on the thickness_weq of all overlying
 %layers. It is therefore necessary to fill missing data. Missing density
@@ -116,7 +110,6 @@ slwc_ini = zeros(size(c.cdel));
 newscale_weq = depth_weq(depth_weq<oldscale_weq(end));
 olddensity = olddensity(oldscale_weq<=newscale_weq(end));
 depth = depth(oldscale_weq<=newscale_weq(end));
-oldstrat = oldstrat(oldscale_weq<=newscale_weq(end));
 oldscale_weq = oldscale_weq(oldscale_weq<=newscale_weq(end));
 newscale_weq = depth_weq(depth_weq<oldscale_weq(end));
 

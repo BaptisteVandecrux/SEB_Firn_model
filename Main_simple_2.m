@@ -11,60 +11,24 @@ addpath(genpath('.\lib'))
 addpath(genpath('Input'),genpath('Output'))
 
 % Running a single file
-
-% %%%%%%%%%%%%%%%%%%%%%
-% High resolution grid (comment if not needed)
 NumLayer = 50;
 param.z_max = 50;
 param.dz_ice = param.z_max/NumLayer;
 param.verbose = 1;
 param.lim_new_lay = param.z_max/NumLayer/50;
 param.shallow_firn_lim = 5;
-param.ConductionModel = 0;      % if 1 does CONDUCTION ONLY
-% In the conduction model, the temperature profile is reseted every night
-% at 2am local time usingg thermistor string readings
 
-% Heterogeneous precolation from Marchenko et al. (2017)
-% this considers only redistribution of the water from the first layer into
-% the rest of the subsurface
-% An alternative is to go through the whole column and check whether piping
-% can occur at any depth
-param.hetero_percol = 0; % 1 = whole scheme on; 0 = standard percolation
-param.hetero_percol_p = 1; % binomial probability for a piping event to be initiated
-                            % In Marchenko et al. (2017) this happens at
-                            % every time step (probability 1)
-param.hetero_percol_frac = 1; % fraction of the available water that can be
-                            % In Marchenko et al. (2017) all the available
-                            % water goes into redistribution (frac = 1)
-param.hetero_percol_dist = 5; % characteristic distance until which
-                            % preferential percolation operates
-                            % When using uniform probability distribution 
-                            % for the redistribution Marchenko et al. (2017)
-                            % recommends between 4.5 and 6 m as cut-off value
-
-% result of a tuning of densification schemes
-%    param.a_dens = 30.25;
-%    param.b_dens = 0.7;
-
-param.year    =  0;
-% by defining param.year, the model will be run only for that melt year
-% (i.e. 1st. april to 1st april) however you still need to make sure that 
-% "rows"  is set so that the appropriate values will be read in the weather 
-% data. To run the model only from 1 to rows, just leave param.year=0.
-
-param.avoid_runoff = 0; 
 param.retmip = 1;
 param.vis = 'off';
 
 model_version = 'imau_antarctica';
-station_list = {'IMAU_aws4'};%, IMAU_aws5','IMAU_aws6','IMAU_aws11'...
-  % 'IMAU_aws15', 'IMAU_aws16', 'IMAU_aws17', 'IMAU_aws18', 'IMAU_aws19'};
+station_list = {'IMAU_aws4'};
 for i =1:length(station_list)
     param.station = station_list{i};
-    param.InputAWSFile = ...
-        ['../SEB-Firn Antarctica/Antarctica/data formatted/', station_list{i}, '_high-res_meteo.csv'];
+    param.InputAWSFile = ['./Input/', station_list{i}, '_high-res_meteo.csv'];
 %     param.InputAWSFile = 'Input\Weather data\data_KAN_U_2012-2016.txt';
     [RunName, c] = HHsubsurf(param);
+    disp(RunName)
     OutputFolder = ['Output/', RunName];
     vis = 'on';
     ylimit = 10;
