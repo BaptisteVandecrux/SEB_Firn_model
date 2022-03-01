@@ -61,7 +61,7 @@ c = update_column_properties(c,psnowc, psnic, pslwc);
 
 [zso_capa, zso_cond] = ice_heats (ptsoil, c);
 
-[psnowc, psnic, pslwc, snowbkt] = ...
+[psnowc, psnic, pslwc, ptsoil, snowbkt] = ...
         melting_new (psnowc, psnic, pslwc, zsnmel, snowbkt, ptsoil,prhofirn, c);
 
 %BV 2017 updating cdel, cmid and rcdel
