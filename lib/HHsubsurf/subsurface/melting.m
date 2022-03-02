@@ -51,6 +51,12 @@ while (zsnout > c.smallno)
     jk = jk + 1 ;
     
     % Update BV2017
+    % Normally, if melt is prescribed at the surface, it implies that the
+    % top layer is at melting point. Since we allow the melting of multiple
+    % layer when needed, it can occur that we need to melt a subfreezing layer.
+    % In that situation, the melting energy is used to warm that layer.
+    % This warming occurs without phase change.
+    
     % How much energy is needed to bring the layer to melting point
     deltaT = c.T_0 - ptsoil(jk);
     % volumetric heat capacity of the layer in J/m3/K
@@ -58,19 +64,17 @@ while (zsnout > c.smallno)
     volume = (psnic(jk) + psnowc(jk))*c.rho_water / prhofirn(jk) ;
     % heat capacity in J/K
     heat_capa = heat_capa_vol .* volume;
-    % energy needed to warm layer to 0degC in J
-    warming_energy = deltaT*heat_capa;
-    if zsnout - warming_energy/c.L_fus/c.rho_water>0
-        % if more melt than cold content
-        % converting that energy into meter of meltwater and removing it from the melt
-        zsnout = zsnout - warming_energy/c.L_fus/c.rho_water;
-    else
-        % if less melt than cold content then melt energy is used to warm
-        % the layer
-        deltaT = zsnout/heat_capa*c.L_fus*c.rho_water;
-        ptsoil(jk) = ptsoil(jk) + deltaT;
-    end
+    % energy needed to warm layer to 0degC 
+    cold_content = deltaT*heat_capa; % in J
+    warming_energy = min(cold_content, zsnout*c.L_fus*c.rho_water); % in J
+    % warming layer
+    ptsoil(jk) = ptsoil(jk) + warming_energy/heat_capa;
+    % removing the corresponding amount from the prescribed melt
+    zsnout = zsnout - warming_energy/c.L_fus/c.rho_water; % in m weq
 
+    % Now the melting layer is either at melting point or zsnout is
+    % depleted. We can use the rest of zsnout to change phase.
+    
     %  How much frozen mass do we have in layer available for melting?       
     zdel = min(zsnout, psnowc(jk) + psnic(jk));
 
