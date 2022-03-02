@@ -145,20 +145,23 @@ for jk = c.jpgrnd-1:-1:1
             potret    = max( liqmaxM* psnowc(jk) , 0);
             
             % Calculate liqexcess from layer water. Make sure it is not negative:
-                % Update BV2017: since dflux has already left slwc(jk) so no
-                % need to remove it anymore (compared to old version)
+            % Update BV2017: since dflux has already left slwc(jk) so no
+            % need to remove it anymore (compared to old version)
             liqexcess = max ( pslwc(jk) - potret , 0 );
                        
-                %Update BV2017: for all layer, if there is no snow to hold
-                %liquid water then runoff is instantaneous ( not allowing
-                %subglacial lakes to form
+            %Update BV2017: for all layer, if there is no snow to hold
+            %liquid water then runoff is instantaneous ( not allowing
+            %subglacial lakes to form
             if (psnowc(jk) < c.smallno)
                 % Here in layer: If there is no snow, run off immediately
                 % in other word surface runoff is instantaneous
                 liqro = liqexcess;
             else
-                Theta = ThetaF( pslwc(jk),psnowc(jk),prhofirn(jk), c);
-%                 liqro_darcy = kF( Theta,pdgrain(jk),prhofirn(jk),psnic(jk) ,psnowc(jk), c) * c.ElevGrad; 
+                % experimental runoff according to darcy flow to an
+                % adjacent layer
+                % Theta = ThetaF( pslwc(jk),psnowc(jk),prhofirn(jk), c);
+                % liqro_darcy = kF( Theta,pdgrain(jk),prhofirn(jk),psnic(jk) ,psnowc(jk), c) * c.ElevGrad; 
+                
                 % old version based on Zuo and Oerlemans (1996)
                 liqro_darcy  = liqexcess/c.t_runoff * c.zdtime;
                 
@@ -169,10 +172,7 @@ for jk = c.jpgrnd-1:-1:1
                 if pslwc(jk) - liqro > pore_space
                     liqro = pslwc(jk) - pore_space;
                 end
-                    
-%                 fprintf('Runoff %f %f %f\n',liqro_darcy, liqro_zo, liqro);
             end
-            
             % Take runoff from water content and give to runoff box
             zrogl    = zrogl    + liqro  ;
             pslwc(jk) = pslwc(jk) - liqro;
