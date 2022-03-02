@@ -99,7 +99,6 @@ oldscale_weq = zeros(size(depth)); %depthweq of each layer in original scale
 oldscale_weq(:) = cumsum(thickweq(:));
 
 % calculates the new depth scale in mweq
-depth_weq = zeros(size(c.cdel));
 depth_weq = cumsum(c.cdel);
 rhofirn_ini = zeros(size(c.cdel));
 snowc_ini = zeros(size(c.cdel));
@@ -107,16 +106,16 @@ snic_ini = zeros(size(c.cdel));
 slwc_ini = zeros(size(c.cdel));
 
 % we limit the new scale to the values that are given within the oldscale
-newscale_weq = depth_weq(depth_weq<oldscale_weq(end));
-olddensity = olddensity(oldscale_weq<=newscale_weq(end));
-depth = depth(oldscale_weq<=newscale_weq(end));
-oldscale_weq = oldscale_weq(oldscale_weq<=newscale_weq(end));
-newscale_weq = depth_weq(depth_weq<oldscale_weq(end));
+% newscale_weq = depth_weq(depth_weq<oldscale_weq(end));
+% olddensity = olddensity(oldscale_weq<=newscale_weq(end));
+% depth = depth(oldscale_weq<=newscale_weq(end));
+% oldscale_weq = oldscale_weq(oldscale_weq<=newscale_weq(end));
+% newscale_weq = depth_weq(depth_weq<oldscale_weq(end));
 
 % Since the oldscale is denser than the new one, we need to make the union
 % of both scales and then average the density for each section of the new
 % scale.
-mergedscale = union(oldscale_weq,newscale_weq);
+mergedscale = union(oldscale_weq,depth_weq);
 density_mergedscale = interp1(oldscale_weq,olddensity,mergedscale,'next','extrap');
 
 % calculating the thickness of each layer in merged scale
@@ -140,7 +139,9 @@ end
  
 % giving the observed density (on appropriate scale) as initial value
 % for the subsurface density profile
+ind_nan = isnan(mean_firndensity);
 rhofirn_ini(1:length(mean_firndensity)) = min(max(300, mean_firndensity),900);
+rhofirn_ini(ind_nan) = NaN;
 
 % fills the rest of the density profile with ice
 if strcmp(c.station,'NUK_K')
@@ -151,14 +152,15 @@ if strcmp(c.station,'NUK_K')
         snowc_ini(length(mean_firndensity)+1:length(c.cdel),1) = 0;
         slwc_ini(length(mean_firndensity)+1:length(c.cdel),1) = 0;
 else
-    if length(mean_firndensity)<length(c.cdel)
+    if length(mean_firndensity(~isnan(mean_firndensity)))<length(c.cdel)
         x =[depth_weq(1:length(mean_firndensity)); 30; 70];
-        y = [mean_firndensity; 830;830];
-        p = polyfit(x,y,2);
+        y = [mean_firndensity; 830; 830];
+        ind = ~isnan(x+y);
+        p = polyfit(x(ind),y(ind),2);
         fo = @(x) p(1)*x.^2 + p(2)*x + p(3);
         
-        rhofirn_ini(length(mean_firndensity)+1:length(c.cdel),1) = ...
-            fo(depth_weq(length(mean_firndensity)+1:length(c.cdel)));
+        rhofirn_ini(isnan(rhofirn_ini)) = ...
+            fo(depth_weq(isnan(rhofirn_ini)));
         rhofirn_ini(rhofirn_ini>c.rho_ice) = c.rho_ice;
         snic_ini(length(mean_firndensity)+1:length(c.cdel),1) = 0;
         snowc_ini(length(mean_firndensity)+1:length(c.cdel),1) = c.cdel(length(mean_firndensity)+1:length(c.cdel),1) ;
@@ -168,10 +170,6 @@ end
 
 rho =  (c.cdel *c.rho_water)./...
     ((snowc_ini *c.rho_water)./rhofirn_ini + (snic_ini *c.rho_water)./c.rho_ice);
-
-% Removing densities greater than ice densities (just in case)
-toodense = (rhofirn_ini > c.rho_ice);
-rhofirn_ini(toodense) = c.rho_ice;
 
 % calculates the new depth scale in real m
 depth_act = cumsum(c.cdel .*c.rho_water ./rhofirn_ini(:,1));
