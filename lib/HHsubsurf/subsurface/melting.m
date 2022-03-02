@@ -1,5 +1,5 @@
 function [psnowc, psnic, pslwc, ptsoil, snowbkt] = ...
-    melting_new (psnowc, psnic, pslwc, zsnmel, snowbkt, ptsoil, prhofirn, c)
+    melting(psnowc, psnic, pslwc, zsnmel, snowbkt, ptsoil, prhofirn, c)
 % melting: Transform an amount zsnmel (m eq) of frozen material into liquid
 % water. Starts at the surface and continues downward as long as more
 % material needs to be melted. Update BV2017: The proportion of ice and snow  
@@ -9,17 +9,12 @@ function [psnowc, psnic, pslwc, ptsoil, snowbkt] = ...
 %	
 %   input:
 %         zsnmel - mass (m weq) of material that needs to be melted
-%         
 %         prhofirn - vector of firn (snow) density (kg/m^3) 
-%
 %         psnowc, psnic, pslwc - vectors of respectively snow, ice and
 %         liquid water part for each subsurface layer (m weq).
-%
 %         ptsoil - vector of subsurface temperature (K)
-%
 %         snowbkt - Fresh snow bucket where new snow is added. When its
 %         content is greater than lim_new_lay, then a new layer is created.
-%
 %         c - Structure containing all the physical, site-dependant or user
 %         defined variables.
 %

@@ -1,8 +1,7 @@
 function [prhofirn, psnowc , psnic, pslwc, pdgrain, zrogl] =...
-    perc_runoff_new (prhofirn, psnowc , psnic, pslwc, ...
+    perc_runoff(prhofirn, psnowc , psnic, pslwc, ...
         pdgrain, c)
-
-% perc_runoff_new: Calculates meltwater percolation and runoff in the column
+% perc_runoff: Calculates meltwater percolation and runoff in the column
 % either according to a standard bucket scheme or to a Darcy-like bucket
 % scheme. Update BV2017: no mass shift anymore, the water is
 % moving from one layer to the next and layer's total mass is allowed to change.
@@ -17,19 +16,13 @@ function [prhofirn, psnowc , psnic, pslwc, pdgrain, zrogl] =...
 %	
 %   input:
 %         prhofirn - vector of firn (snow) density (kg/m^3) 
-%
 %         psnowc, psnic, pslwc - vectors of respectively snow, ice and
 %         liquid water part for each subsurface layer (m weq).
-%
 %         ptsoil - vector of subsurface temperature (K)
-%
 %         pdgrain - Vector of layer grain size. see graingrowth function.
-%
 %         pTdeep - lower boundary temperature (K). Defined by the constant
 %         T_ice_AWS so far.
-%
 %         zrogl - total amount of run off (mm weq)
-%
 %         c - Structure containing all the physical, site-dependant or user
 %         defined variables.
 %
@@ -40,10 +33,6 @@ function [prhofirn, psnowc , psnic, pslwc, pdgrain, zrogl] =...
 %   Robert S. Fausto (rsf@geus.dk) in FORTRAN then translated to Matlab by 
 %   Baptiste Vandecrux (bava@byg.dtu.dk).
 %=========================================================================
-
-%======================================================
-%Here we do liquid water percolation and runoff
-%======================================================
 % *** Calculate potential Darcy fluxes for all columns ***
 %  (if do-no-darcy, then fluxes will be calcuc.lated on-the-fly in loops below)
 % This calculation makes sure potential darcy flux across interfaces does
