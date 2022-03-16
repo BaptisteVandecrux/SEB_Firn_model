@@ -42,8 +42,6 @@ if sum(WStoolow) > 0
     WS(WStoolow) = 0  ;    % setting a lower limit for wind speed
 end
 rho_atm = 100*pres./c.R_d./T ;               % atmospheric density
-mu=zeros(c.M,c.elev_bins);
-nu=zeros(c.M,c.elev_bins);
 mu = 18.27e-6.*(291.15+120)./(T+120).*(T./291.15).^1.5 ;  % dynamic viscosity of air (Pa s) (Sutherlands' formula using C = 120 K)
 nu = mu./rho_atm  ;
 % kinematic viscosity of air (m^2/s)

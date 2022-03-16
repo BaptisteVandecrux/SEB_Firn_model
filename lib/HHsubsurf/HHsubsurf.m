@@ -315,6 +315,9 @@ for j=1:c.elev_bins
             c.liqmax =0;
             c.calc_CLliq = 0;
             Tsurf(k,j) = ((LRout(k) - (1-c.em)*LRin(k)) /(c.em*c.sigma))^(1/4);
+            if k == 1
+                last_no_nan = 250;
+            end
             if isnan(Tsurf(k,j))
                 Tsurf(k,j) = last_no_nan;
             else

@@ -156,7 +156,9 @@ else
         x =[depth_weq(1:length(mean_firndensity)); 30; 70];
         y = [mean_firndensity; 830; 830];
         ind = ~isnan(x+y);
-        p = polyfit(x(ind),y(ind),2);
+        x = round(x(ind),4);
+        y = round(y(ind),4);
+        p = polyfit(x,y,2);
         fo = @(x) p(1)*x.^2 + p(2)*x + p(3);
         
         rhofirn_ini(isnan(rhofirn_ini)) = ...
@@ -280,7 +282,6 @@ end
 depth = out(:,1); %old depth scale in m
 oldtemp = out(:,2); %temperature on the old real depth scale
 
-
 oldtemp(depth<0 ) =[];
 depth(depth<0 ) =[];
   depth(isnan(oldtemp))=[];
@@ -299,8 +300,7 @@ depth(depth<0 ) =[];
     end
         
     [newtemp] = ConvertToGivenDepthScale(depth, oldtemp, depth_act,'linear');
-
-    newtemp(isnan(newtemp))=[];
+    newtemp = fillmissing(newtemp,'next');
     newtemp = newtemp + c.T_0; %going back to K
 
     % giving the observed temperature (on appropriate scale) as initial value
@@ -347,6 +347,7 @@ if c.verbose == 1
     print(f,sprintf('%s/Initial_temp',c.OutputFolder),'-dpng')
 
 end
+
 %% ========== Initial grain size ===================================
 
 switch c.station
